@@ -1,27 +1,22 @@
 
-/* 1. DESIGN TOKENS -------------------------------------------------------- */
 :root {
-  /* Ink and paper */
-  --ink: #16202E;         /* 14.5:1 on paper, 16.4:1 on card */
-  --muted: #55637A;       /* 5.4:1 on paper, 6.1:1 on card  */
-  --paper: #EEF1F5;       /* page background - cool bill stock */
+   
+  --ink: #16202E;       
+  --muted: #55637A;      
+  --paper: #EEF1F5;      
   --card: #FFFFFF;
 
-  /* Lines: --rule is decorative, --field is for control borders (needs 3:1) */
   --rule: #C9D2DC;
-  --field: #6E7C91;       /* 4.2:1 on card, 3.7:1 on paper */
-  --track: #DDE3EC;       /* slider groove */
+  --field: #6E7C91;       
+  --track: #DDE3EC;      
 
-  /* Stamped ink - the single interactive colour */
-  --stamp: #2B3FA8;       /* 8.8:1 on card */
-  --stamp-deep: #1E2D7D;  /* 12.2:1 with white text */
+  --stamp: #2B3FA8;
+  --stamp-deep: #1E2D7D;
 
-  /* Verdict signals */
-  --good-ink: #14624A;  --good-bg: #DDEDE6;   /* 6.0:1 */
-  --wait-ink: #7A4B00;  --wait-bg: #FBEBD0;   /* 6.3:1 */
-  --stop-ink: #A01B2B;  --stop-bg: #FBE4E7;   /* 6.5:1 */
+  --good-ink: #14624A;  --good-bg: #DDEDE6;
+  --wait-ink: #7A4B00;  --wait-bg: #FBEBD0;
+  --stop-ink: #A01B2B;  --stop-bg: #FBE4E7;
 
-  /* Type scale, base 17px, ratio 1.25 */
   --t-caption: 0.75rem;
   --t-small: 0.8125rem;
   --t-body: 1rem;
@@ -31,22 +26,20 @@
   --t-h1: clamp(1.953rem, 1.4rem + 2.2vw, 2.5rem);
   --t-figure: clamp(2.6rem, 1.5rem + 6vw, 4.75rem);
 
-  /* Spacing scale (4px base) */
   --s1: 0.25rem; --s2: 0.5rem;  --s3: 0.75rem; --s4: 1rem;
   --s5: 1.5rem;  --s6: 2rem;    --s7: 3rem;    --s8: 4rem;
 
-  /* Radii are assigned by role, not applied uniformly:
-     square for the bill block, 2px for controls, pill for status only. */
+ 
   --r-control: 2px;
   --r-pill: 999px;
 
-  --measure: 66ch;         /* readable line length */
+  --measure: 66ch;         
   --shell: 70rem;
 }
 
-/* 2. RESET AND BASE ------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 
+ 
 body, h1, h2, h3, p, ul, ol, dl, dd, figure, fieldset, legend {
   margin: 0;
   padding: 0;
@@ -60,7 +53,7 @@ body {
   font-family: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--t-body);
   line-height: 1.6;
-  /* Figures line up in columns - essential when the page is full of prices */
+ 
   font-variant-numeric: tabular-nums;
   min-height: 100vh;
   display: flex;
@@ -71,7 +64,7 @@ img { max-width: 100%; display: block; height: auto; }
 
 ul, ol { list-style: none; }
 
-/* 3. TYPOGRAPHY ----------------------------------------------------------- */
+/* Shared typography: all pages. */
 .page-title {
   font-size: var(--t-h1);
   font-weight: 600;
@@ -105,8 +98,8 @@ ul, ol { list-style: none; }
   color: var(--muted);
 }
 
-/* 4. FOCUS AND SKIP LINK -------------------------------------------------- */
 
+/* Accessibility: all pages. */
 :focus-visible {
   outline: 3px solid var(--stamp);
   outline-offset: 2px;
@@ -137,7 +130,7 @@ ul, ol { list-style: none; }
   border: 0;
 }
 
-/* 5. PAGE SHELL ----------------------------------------------------------- */
+/* Shared layout: all pages. */
 .shell {
   width: 100%;
   max-width: var(--shell);
@@ -152,7 +145,7 @@ ul, ol { list-style: none; }
 
 .stack > * + * { margin-top: var(--s5); }
 
-/* 6. SITE HEADER ---------------------------------------------------------- */
+/* Shared header: all pages. */
 .site-header {
   background-color: var(--card);
   border-bottom: 1px solid var(--rule);
@@ -178,7 +171,7 @@ ul, ol { list-style: none; }
   text-decoration: none;
 }
 
-/* The rupee glyph is set in stamp ink so the wordmark reads as a price tag */
+
 .wordmark__mark {
   color: var(--stamp);
   font-weight: 700;
@@ -200,14 +193,14 @@ ul, ol { list-style: none; }
 
 .site-nav a:hover { color: var(--ink); border-bottom-color: var(--field); }
 
-/* aria-current marks the page you are on, not just a colour change */
+
 .site-nav a[aria-current="page"] {
   color: var(--ink);
   border-bottom-color: var(--stamp);
 }
 
-/* 7. STEP INDICATOR ------------------------------------------------------- */
-/* Numbered markers are used here because the content genuinely is a sequence. */
+
+/* Wizard progress: Steps 1-4. */
 .steps {
   border-bottom: 1px solid var(--rule);
   background-color: var(--card);
@@ -247,7 +240,7 @@ ul, ol { list-style: none; }
 
 .steps__item--done { color: var(--ink); }
 
-/* aria-current="step" is the accessible signal; the styling follows it */
+
 .steps__item[aria-current="step"] { color: var(--ink); font-weight: 600; }
 
 .steps__item[aria-current="step"] .steps__num {
@@ -263,7 +256,7 @@ ul, ol { list-style: none; }
   padding-bottom: var(--s3);
 }
 
-/* progress needs vendor pseudo-elements to restyle in both engines */
+
 .progress-row progress {
   appearance: none;
   -webkit-appearance: none;
@@ -280,13 +273,13 @@ ul, ol { list-style: none; }
 .progress-row progress::-webkit-progress-value { background-color: var(--stamp); }
 .progress-row progress::-moz-progress-bar { background-color: var(--stamp); }
 
-/* 8. BUTTONS -------------------------------------------------------------- */
+/* Actions: all pages. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  min-height: 2.75rem;          /* comfortable touch target */
+  min-height: 2.75rem;          
   padding: var(--s3) var(--s5);
   border: 1px solid transparent;
   border-radius: var(--r-control);
@@ -312,8 +305,7 @@ ul, ol { list-style: none; }
 
 .btn--secondary:hover { border-color: var(--ink); background-color: var(--card); }
 
-/* Locked state for the cooling-off timer. aria-disabled keeps the control
-   focusable so a screen reader user can still hear why it is unavailable. */
+
 .btn[aria-disabled="true"] {
   background-color: var(--track);
   border-color: var(--field);
@@ -338,7 +330,7 @@ ul, ol { list-style: none; }
 
 .text-link:hover { color: var(--stamp-deep); }
 
-/* 9. CARDS AND WIZARD LAYOUT ---------------------------------------------- */
+/* Shared cards: Home, History, Alternatives, Steps 1-4. */
 .card {
   background-color: var(--card);
   border: 1px solid var(--rule);
@@ -346,8 +338,8 @@ ul, ol { list-style: none; }
   padding: var(--s5);
 }
 
-/* Two-column wizard: the form on the left, the running bill on the right.
-   CSS Grid handles the page split; Flexbox handles rows inside components. */
+
+/* Wizard layout: Steps 1-4. */
 .wizard {
   display: grid;
   gap: var(--s5);
@@ -356,7 +348,7 @@ ul, ol { list-style: none; }
 
 @media (min-width: 60rem) {
   .wizard {
-    /* 7 columns of form, 5 columns of bill, from a 12 column idea */
+    
     grid-template-columns: 7fr 5fr;
     gap: var(--s6);
   }
@@ -378,7 +370,7 @@ ul, ol { list-style: none; }
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
 }
 
-/* 10. FORMS --------------------------------------------------------------- */
+/* Forms: History, Alternatives, Steps 1-4. */
 .fieldset {
   border: 0;
   border-top: 1px solid var(--rule);
@@ -410,7 +402,7 @@ ul, ol { list-style: none; }
   font: inherit;
   color: var(--ink);
   background-color: var(--card);
-  border: 1px solid var(--field);   /* 4.2:1 against the card, meets 1.4.11 */
+  border: 1px solid var(--field);
   border-radius: var(--r-control);
 }
 
@@ -418,7 +410,7 @@ ul, ol { list-style: none; }
 
 .input::placeholder { color: var(--muted); }
 
-/* Helper text is joined to its input with aria-describedby in the HTML */
+
 .hint {
   display: block;
   margin-top: var(--s2);
@@ -426,7 +418,7 @@ ul, ol { list-style: none; }
   color: var(--muted);
 }
 
-/* Prefix a currency symbol without hiding it from the label */
+
 .input-money {
   display: flex;
   align-items: stretch;
@@ -455,7 +447,6 @@ ul, ol { list-style: none; }
 
 .input-money .input:focus-visible { outline: none; }
 
-/* Error pattern: role="alert" on the message, aria-invalid on the input */
 .input[aria-invalid="true"] { border-color: var(--stop-ink); border-width: 2px; }
 
 .error-text {
@@ -466,9 +457,7 @@ ul, ol { list-style: none; }
   color: var(--stop-ink);
 }
 
-/* 11. RANGE SLIDERS ------------------------------------------------------- */
-/* Sliders need separate track and thumb rules per engine; there is no single
-   cross-browser selector yet, so the same values are repeated deliberately. */
+/* Usage controls: Step 2. */
 .slider-head {
   display: flex;
   align-items: baseline;
@@ -506,7 +495,7 @@ ul, ol { list-style: none; }
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 1.375rem; height: 1.375rem;
-  margin-top: -0.5rem;           /* centres the thumb on the track */
+  margin-top: -0.5rem;
   background-color: var(--stamp);
   border: 2px solid var(--card);
   border-radius: var(--r-pill);
@@ -532,9 +521,7 @@ ul, ol { list-style: none; }
   color: var(--muted);
 }
 
-/* 12. CHOICE CARDS (radio and checkbox) ----------------------------------- */
-/* The native input stays in the DOM and keeps its own focus and keyboard
-   behaviour; only the surrounding label is restyled. */
+/* Choice controls: Steps 1-3. */
 .choice-list { display: grid; gap: var(--s3); }
 
 @media (min-width: 40rem) {
@@ -558,7 +545,6 @@ ul, ol { list-style: none; }
 
 .choice input { margin-top: 0.35rem; accent-color: var(--stamp); flex: none; }
 
-/* :has() lets the whole card respond to the checked input without JavaScript */
 .choice:has(input:checked) {
   border-color: var(--stamp);
   border-width: 2px;
@@ -570,13 +556,11 @@ ul, ol { list-style: none; }
 .choice__title { font-weight: 600; }
 .choice__meta { display: block; font-size: var(--t-small); color: var(--muted); }
 
-/* 13. THE BILL - signature component -------------------------------------- */
-/* A literal division sum: price on top, uses underneath, quotient below the
-   rule. This is the one loud element on the page. */
+/* Running/final bill: Steps 1-4. */
 .bill {
   background-color: var(--card);
   border: 1px solid var(--ink);
-  border-radius: 0;              /* a bill has square corners */
+  border-radius: 0;
   padding: var(--s5);
 }
 
@@ -608,6 +592,7 @@ ul, ol { list-style: none; }
   border-top: 1px solid var(--rule);
 }
 
+/* Bill figures: Steps 1-4 and verdict comparisons. */
 .bill__figure {
   display: block;
   font-size: var(--t-figure);
@@ -623,8 +608,7 @@ ul, ol { list-style: none; }
   color: var(--muted);
 }
 
-/* aria-live="polite" wraps this region so Phase 2 recalculations are
-   announced without stealing focus from the field being edited. */
+
 .live-region { min-height: 1px; }
 
 .bill__breakdown {
@@ -644,7 +628,7 @@ ul, ol { list-style: none; }
 .bill__breakdown dt { color: var(--muted); }
 .bill__breakdown dd { margin: 0; font-weight: 600; }
 
-/* 14. VERDICT PILLS AND WARNING CARDS ------------------------------------- */
+/* Status signals: Home, History, Alternatives, Steps 3-4. */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -659,8 +643,7 @@ ul, ol { list-style: none; }
 .pill--wait { background-color: var(--wait-bg); color: var(--wait-ink); }
 .pill--stop { background-color: var(--stop-bg); color: var(--stop-ink); }
 
-/* Warning cards carry a left edge in the signal colour AND a worded label,
-   so the meaning never depends on colour alone (WCAG 1.4.1). */
+/* Explanatory alerts: Home, History, Steps 3-4. */
 .callout {
   border: 1px solid var(--rule);
   border-left: 4px solid var(--field);
@@ -674,13 +657,8 @@ ul, ol { list-style: none; }
 .callout--good { border-left-color: var(--good-ink); background-color: var(--good-bg); }
 
 .callout__title { font-weight: 700; }
-/* A callout is the only block where body text runs the full width of the
-   shell, so it is the one place the reading-measure cap is needed. */
 .callout p { margin-top: var(--s2); max-width: var(--measure); }
 
-/* Score meter. Three verdict bands use the inline prototype thresholds:
-  below 75 the answer is buy, 75 to 89 is wait 48 hours, 90 and above is skip.
-   The unmodified fill is the wait band, because that is the commonest outcome. */
 .meter {
   height: 0.625rem;
   background-color: var(--track);
@@ -692,7 +670,6 @@ ul, ol { list-style: none; }
 .meter__fill--good { background-color: var(--good-ink); }
 .meter__fill--stop { background-color: var(--stop-ink); }
 
-/* A row pairing one meter with its band name, used to explain the score. */
 .band {
   display: grid;
   grid-template-columns: 5.5rem 1fr;
@@ -702,7 +679,7 @@ ul, ol { list-style: none; }
   font-size: var(--t-small);
 }
 
-/* 15. TABLES -------------------------------------------------------------- */
+/* Tables: History and Step 4. */
 .table-scroll { overflow-x: auto; }
 
 .table {
@@ -734,9 +711,7 @@ ul, ol { list-style: none; }
 .table td:last-child, .table th:last-child { text-align: right; }
 .table tbody tr:hover { background-color: var(--paper); }
 
-/* 16. HOME PAGE HERO ------------------------------------------------------ */
-/* The hero shows the actual sum the product performs, on a real example,
-   rather than describing the product in the abstract. */
+/* Home page: index.html. */
 .hero {
   display: grid;
   gap: var(--s6);
@@ -754,7 +729,6 @@ ul, ol { list-style: none; }
   background-color: var(--card);
   border: 1px solid var(--ink);
   padding: var(--s5);
-  /* A torn-off bill sits slightly askew on the counter */
   transform: rotate(-0.6deg);
 }
 
@@ -803,7 +777,7 @@ ul, ol { list-style: none; }
   max-width: 18ch;
 }
 
-/* 17. HOW IT WORKS - a genuine sequence, so numbered ---------------------- */
+/* Workflow list: index.html. */
 .flow { counter-reset: flow; }
 
 .flow__item {
@@ -823,7 +797,7 @@ ul, ol { list-style: none; }
   font-variant-numeric: tabular-nums;
 }
 
-/* 18. FOOTER -------------------------------------------------------------- */
+/* Shared footer: all pages. */
 .site-footer {
   background-color: var(--ink);
   color: var(--paper);
@@ -840,7 +814,7 @@ ul, ol { list-style: none; }
 
 .site-footer a { color: var(--card); text-decoration: underline; text-underline-offset: 3px; }
 
-/* 19. MOTION PREFERENCE --------------------------------------------------- */
+/* Accessibility preferences: all pages. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -851,15 +825,12 @@ ul, ol { list-style: none; }
   .receipt { transform: none; }
 }
 
-/* 20. FORCED COLOURS (Windows high contrast) ------------------------------ */
 @media (forced-colors: active) {
   .btn, .card, .bill, .choice { border: 1px solid CanvasText; }
   .meter__fill { background-color: CanvasText; }
 }
 
-/* 21. PRINT - the shareable Reality Check report -------------------------- */
-/* Phase 3 renders a printable report from the server. The print rules are
-   written now so the same markup prints cleanly today. */
+/* Print report: all pages. */
 @media print {
   :root { --paper: #FFFFFF; }
 
@@ -879,11 +850,10 @@ ul, ol { list-style: none; }
 
   .wizard { display: block; }
 
-  /* Spell out link targets on paper */
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; }
 }
 
-/* 22. UTILITIES ----------------------------------------------------------- */
+/* Utilities: all pages. */
 .muted { color: var(--muted); }
 .strong { font-weight: 700; }
 .figure-tight { letter-spacing: -0.02em; font-weight: 700; }

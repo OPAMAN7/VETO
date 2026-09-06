@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Step 1 of 4: item details - Reality Check</title>
-  <meta name="description" content="Step one of the Reality Check wizard: name the item, pick a category and enter the price.">
+  <title>Step 1 of 4: item details - VETO</title>
+  <meta name="description" content="Step one of the  VETOwizard: name the item, pick a category and enter the price.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
   <header class="site-header">
     <div class="shell site-header__inner">
       <a class="wordmark" href="index.html">
-        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>VETO
       </a>
       <nav class="site-nav" aria-label="Main">
         <ul>
@@ -30,8 +30,6 @@
     </div>
   </header>
 
-  <!-- Step indicator. It is an ordered list because the steps are a real
-       sequence, and aria-current="step" tells assistive tech where you are. -->
   <div class="steps">
     <div class="shell">
       <nav aria-label="Progress through the check">
@@ -60,14 +58,11 @@
   <main class="site-main" id="main">
     <div class="shell wizard">
 
-      <!-- LEFT COLUMN: the form for this step -->
       <div>
         <h1 class="page-title">What are you thinking of buying?</h1>
         <p class="lead mt-4">Price and category only. The category decides the default
           lifespan used in the next step.</p>
 
-           <!-- method="get" with an action means Continue works with no JavaScript.
-             The prototype keeps its category defaults inline in the pages. -->
         <form class="card mt-5" action="step-2-usage.html" method="get">
           <fieldset class="fieldset">
             <legend class="legend">Item details</legend>
@@ -80,9 +75,6 @@
                        autocomplete="off" aria-describedby="item-name-hint">
                 <span class="hint" id="item-name-hint">Write it the way you would search
                   for it, so a duplicate check can match it later.</span>
-                <!-- Error pattern for Phase 2: JavaScript removes hidden and sets
-                     aria-invalid="true" on the input above. role="alert" makes a
-                     screen reader announce the message the moment it appears. -->
                 <span class="error-text" id="item-name-error" role="alert" hidden>
                   Enter a name so this check can be found again.
                 </span>
@@ -129,9 +121,6 @@
               way it actually happened, not the way it sounds better.</p>
             <div class="choice-list choice-list--row mt-4" role="radiogroup"
                  aria-describedby="trigger-hint">
-              <!-- No option is pre-selected on purpose. A default here would be a
-                   nudge, and required on one radio makes the browser demand a
-                   choice for the whole group. -->
               <label class="choice">
                 <input type="radio" name="trigger" value="replacement" required>
                 <span class="choice__text">
@@ -171,10 +160,6 @@
         </form>
       </div>
 
-      <!-- RIGHT COLUMN: the running bill.
-           aria-live="polite" means Phase 2 can update these figures on every
-           keystroke and a screen reader will read the new total once the user
-           pauses, without moving focus out of the field being typed in. -->
       <aside class="wizard__bill" aria-labelledby="bill-title">
         <div class="bill">
           <h2 class="bill__caption" id="bill-title">Running bill</h2>
@@ -218,8 +203,7 @@
 
   <footer class="site-footer">
     <div class="shell site-footer__inner">
-      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
-      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+      <p>VETO</p>
     </div>
   </footer>
 </body>
