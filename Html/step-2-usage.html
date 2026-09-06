@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 2 of 4: usage and lifespan - Reality Check</title>
+  <meta name="description" content="Step two of the Reality Check wizard: how often you will use the item and how long it will last.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="step-1-item.html" aria-current="page">Start a check</a></li>
+          <li><a href="history.html">Your decisions</a></li>
+          <li><a href="alternatives.html">Alternatives</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="steps">
+    <div class="shell">
+      <nav aria-label="Progress through the check">
+        <ol class="steps__list">
+          <li class="steps__item steps__item--done">
+            <span class="steps__num" aria-hidden="true">1</span>Item details
+            <span class="sr-only">completed</span>
+          </li>
+          <li class="steps__item" aria-current="step">
+            <span class="steps__num" aria-hidden="true">2</span>Usage and lifespan
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">3</span>Redundancy
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">4</span>Verdict
+          </li>
+        </ol>
+      </nav>
+      <div class="progress-row">
+        <label class="note" for="wizard-progress">Step 2 of 4</label>
+        <progress id="wizard-progress" max="4" value="2">2 of 4 steps done</progress>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main" id="main">
+    <div class="shell wizard">
+
+      <div>
+        <h1 class="page-title">How often will you really use it?</h1>
+        <p class="lead mt-4">Both sliders start at the average for your category. Move
+          them to match your own habits, not your intentions.</p>
+
+        <form class="card mt-5" action="step-3-redundancy.html" method="get">
+          <fieldset class="fieldset">
+            <legend class="legend">Frequency and lifespan</legend>
+
+            <div class="mt-4">
+              <div class="slider-head">
+                <label class="label" for="uses-per-month">Uses per month</label>
+                <span class="slider-value" data-field="uses-per-month">2 a month</span>
+              </div>
+              <input class="slider" type="range" id="uses-per-month" name="usesPerMonth"
+                     min="0" max="30" step="1" value="2"
+                     aria-describedby="uses-hint">
+              <div class="slider-scale" aria-hidden="true">
+                <span>Never</span><span>15</span><span>30 or more</span>
+              </div>
+              <span class="hint" id="uses-hint">Starting point taken from your category.
+                Count only the months you would actually reach for it.</span>
+            </div>
+
+            <div class="mt-5">
+              <div class="slider-head">
+                <label class="label" for="lifespan">Months you expect it to last</label>
+                <span class="slider-value" data-field="lifespan">24 months</span>
+              </div>
+              <input class="slider" type="range" id="lifespan" name="lifespanMonths"
+                     min="1" max="60" step="1" value="24"
+                     aria-describedby="lifespan-hint">
+              <div class="slider-scale" aria-hidden="true">
+                <span>1 month</span><span>30</span><span>60</span>
+              </div>
+              <span class="hint" id="lifespan-hint">Until it breaks, goes out of style,
+                or you stop caring. Whichever comes first.</span>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="legend">Honesty check</legend>
+            <p class="hint" id="honesty-hint">Tick only what is true today. Each unticked
+              box raises the impulse score.</p>
+            <div class="choice-list mt-4" role="group" aria-describedby="honesty-hint">
+              <label class="choice">
+                <input type="checkbox" name="honesty" value="first-use-planned">
+                <span class="choice__text">
+                  <span class="choice__title">I know exactly when I will first use it</span>
+                  <span class="choice__meta">A date, not a someday</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="checkbox" name="honesty" value="matches-habit">
+                <span class="choice__text">
+                  <span class="choice__title">Last month looked like the number above</span>
+                  <span class="choice__meta">The frequency matches a habit you already have</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="checkbox" name="honesty" value="fits-budget">
+                <span class="choice__text">
+                  <span class="choice__title">This fits inside this month's budget</span>
+                  <span class="choice__meta">Without moving money from something else</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="btn-row btn-row--split mt-5">
+            <a class="btn btn--secondary" href="step-1-item.html">Back to item details</a>
+            <button class="btn btn--primary" type="submit">Continue to redundancy</button>
+          </div>
+        </form>
+      </div>
+
+      <aside class="wizard__bill" aria-labelledby="bill-title">
+        <div class="bill">
+          <h2 class="bill__caption" id="bill-title">Running bill</h2>
+
+          <!-- The sum is laid out as a real division: price above the rule,
+               total uses below it, quotient underneath. -->
+          <div class="bill__sum">
+            <p class="bill__numerator">
+              <span>Price</span>
+              <span data-field="price">&#8377;18,499</span>
+            </p>
+            <hr class="bill__rule">
+            <p class="bill__denominator">
+              <span>Total uses</span>
+              <span data-field="uses">48</span>
+            </p>
+          </div>
+
+          <div class="bill__quotient live-region" aria-live="polite" aria-atomic="true">
+            <strong class="bill__figure" data-field="cost-per-use">&#8377;385</strong>
+            <span class="bill__unit">per use over 24 months</span>
+          </div>
+
+          <dl class="bill__breakdown">
+            <div><dt>Same money as</dt><dd>92 coffees</dd></div>
+            <div><dt>Factors answered so far</dt><dd>3 of 5</dd></div>
+            <div><dt>Impulse score so far</dt><dd data-field="impulse">82 of 100</dd></div>
+          </dl>
+
+          <div class="mt-4">
+            <div class="meter" role="img" aria-label="Provisional impulse score 82 out of 100, inside the 75 to 89 wait band">
+              <div class="meter__fill" style="width: 82%"></div>
+            </div>
+          </div>
+
+          <p class="mt-4"><span class="pill pill--wait">Heading for a 48 hour wait</span></p>
+        </div>
+
+        <p class="note mt-4">The score is provisional: only the three factors you have
+          answered are counted, out of the 55 points they are worth. Redundancy is asked
+          next. Phase 2 binds these figures to the fields on the left.</p>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
+      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>

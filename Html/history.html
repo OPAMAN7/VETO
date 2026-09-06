@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your decisions - Reality Check</title>
+  <meta name="description" content="Every Reality Check you have run, what you decided, and how accurate your usage predictions turned out to be.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="step-1-item.html">Start a check</a></li>
+          <li><a href="history.html" aria-current="page">Your decisions</a></li>
+          <li><a href="alternatives.html">Alternatives</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main" id="main">
+    <div class="shell">
+
+      <h1 class="page-title">September 2026</h1>
+      <p class="lead mt-4">Nine checks run this month. Four purchases skipped, two still
+        inside their cooling-off window.</p>
+
+      <dl class="stat-row mt-5">
+        <div>
+          <dt class="stat__label">Not spent this month</dt>
+          <dd class="stat__figure">&#8377;31,240</dd>
+        </div>
+        <div>
+          <dt class="stat__label">Checks run</dt>
+          <dd class="stat__figure">9</dd>
+        </div>
+        <div>
+          <dt class="stat__label">Prediction accuracy</dt>
+          <dd class="stat__figure">61%</dd>
+        </div>
+        <div>
+          <dt class="stat__label">Audits due</dt>
+          <dd class="stat__figure">2</dd>
+        </div>
+      </dl>
+
+      <hr class="divider">
+
+      <div class="callout callout--wait">
+        <p class="callout__title">Two 30 day audits are due</p>
+        <p>You bought a standing desk converter on 5 August and predicted 20 uses a month.
+          Recording what really happened is what makes the accuracy rating mean anything.</p>
+        <p class="mt-4"><a class="btn btn--primary" href="step-1-item.html">Record actual usage</a></p>
+      </div>
+
+      <hr class="divider">
+
+      <section aria-labelledby="log-title">
+        <h2 class="section-title" id="log-title">Decision log</h2>
+
+        <form class="card mt-4" action="history.html" method="get">
+          <div class="field-grid field-grid--two">
+            <p class="field">
+              <label class="label" for="filter-outcome">Show</label>
+              <select class="select" id="filter-outcome" name="outcome">
+                <option value="all">Every decision</option>
+                <option value="passed">Skipped only</option>
+                <option value="delayed">Waiting only</option>
+                <option value="bought">Bought only</option>
+              </select>
+            </p>
+            <p class="field">
+              <label class="label" for="filter-search">Find an item</label>
+              <input class="input" type="search" id="filter-search" name="q"
+                     placeholder="desk, shoes, camera" aria-describedby="filter-hint">
+              <span class="hint" id="filter-hint">Matches the item name you entered in
+                step 1.</span>
+            </p>
+          </div>
+          <div class="btn-row mt-4">
+            <button class="btn btn--primary" type="submit">Apply filters</button>
+            <a class="text-link" href="history.html">Clear</a>
+          </div>
+        </form>
+
+        <!-- A table because this is tabular data. scope on every header cell
+             tells a screen reader which row and column a value belongs to. -->
+        <div class="card mt-5">
+          <div class="table-scroll">
+            <table class="table">
+              <caption>Checks run in September 2026</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Item</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Cost per use</th>
+                  <th scope="col">Score</th>
+                  <th scope="col">Decision</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Each item name links to its saved verdict. In Phase 1 every row
+                     points at the same page; Phase 3 gives each record its own id. -->
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Espresso machine</a></th>
+                  <td><time datetime="2026-09-05">5 Sep</time></td>
+                  <td>&#8377;18,499</td>
+                  <td>&#8377;385</td>
+                  <td>88</td>
+                  <td><span class="pill pill--wait">Waiting</span></td>
+                </tr>
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Running shoes</a></th>
+                  <td><time datetime="2026-09-03">3 Sep</time></td>
+                  <td>&#8377;6,299</td>
+                  <td>&#8377;44</td>
+                  <td>31</td>
+                  <td><span class="pill pill--good">Bought</span></td>
+                </tr>
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Instant camera</a></th>
+                  <td><time datetime="2026-09-02">2 Sep</time></td>
+                  <td>&#8377;7,999</td>
+                  <td>&#8377;666</td>
+                  <td>79</td>
+                  <td><span class="pill pill--stop">Skipped</span></td>
+                </tr>
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Air fryer</a></th>
+                  <td><time datetime="2026-08-28">28 Aug</time></td>
+                  <td>&#8377;4,750</td>
+                  <td>&#8377;20</td>
+                  <td>22</td>
+                  <td><span class="pill pill--good">Bought</span></td>
+                </tr>
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Mechanical keyboard</a></th>
+                  <td><time datetime="2026-08-24">24 Aug</time></td>
+                  <td>&#8377;9,100</td>
+                  <td>&#8377;13</td>
+                  <td>44</td>
+                  <td><span class="pill pill--wait">Waiting</span></td>
+                </tr>
+                <tr>
+                  <th scope="row"><a class="text-link" href="step-4-verdict.html">Festival jacket</a></th>
+                  <td><time datetime="2026-08-19">19 Aug</time></td>
+                  <td>&#8377;3,499</td>
+                  <td>&#8377;1,166</td>
+                  <td>91</td>
+                  <td><span class="pill pill--stop">Skipped</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="note mt-4">Six of nine rows shown. Paging and sorting come with the
+          Express routes in Phase 3.</p>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
+      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>

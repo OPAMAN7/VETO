@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 1 of 4: item details - Reality Check</title>
+  <meta name="description" content="Step one of the Reality Check wizard: name the item, pick a category and enter the price.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="step-1-item.html" aria-current="page">Start a check</a></li>
+          <li><a href="history.html">Your decisions</a></li>
+          <li><a href="alternatives.html">Alternatives</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Step indicator. It is an ordered list because the steps are a real
+       sequence, and aria-current="step" tells assistive tech where you are. -->
+  <div class="steps">
+    <div class="shell">
+      <nav aria-label="Progress through the check">
+        <ol class="steps__list">
+          <li class="steps__item" aria-current="step">
+            <span class="steps__num" aria-hidden="true">1</span>Item details
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">2</span>Usage and lifespan
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">3</span>Redundancy
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">4</span>Verdict
+          </li>
+        </ol>
+      </nav>
+      <div class="progress-row">
+        <label class="note" for="wizard-progress">Step 1 of 4</label>
+        <progress id="wizard-progress" max="4" value="1">1 of 4 steps done</progress>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main" id="main">
+    <div class="shell wizard">
+
+      <!-- LEFT COLUMN: the form for this step -->
+      <div>
+        <h1 class="page-title">What are you thinking of buying?</h1>
+        <p class="lead mt-4">Price and category only. The category decides the default
+          lifespan used in the next step.</p>
+
+           <!-- method="get" with an action means Continue works with no JavaScript.
+             The prototype keeps its category defaults inline in the pages. -->
+        <form class="card mt-5" action="step-2-usage.html" method="get">
+          <fieldset class="fieldset">
+            <legend class="legend">Item details</legend>
+
+            <div class="field-grid mt-4">
+              <p class="field">
+                <label class="label" for="item-name">Item name</label>
+                <input class="input" type="text" id="item-name" name="item"
+                       placeholder="Espresso machine" required
+                       autocomplete="off" aria-describedby="item-name-hint">
+                <span class="hint" id="item-name-hint">Write it the way you would search
+                  for it, so a duplicate check can match it later.</span>
+                <!-- Error pattern for Phase 2: JavaScript removes hidden and sets
+                     aria-invalid="true" on the input above. role="alert" makes a
+                     screen reader announce the message the moment it appears. -->
+                <span class="error-text" id="item-name-error" role="alert" hidden>
+                  Enter a name so this check can be found again.
+                </span>
+              </p>
+
+              <div class="field-grid field-grid--two">
+                <p class="field">
+                  <label class="label" for="item-price">Price</label>
+                  <span class="input-money">
+                    <span class="input-money__symbol" aria-hidden="true">&#8377;</span>
+                    <input class="input" type="number" id="item-price" name="price"
+                           min="0" step="1" inputmode="numeric" placeholder="18499"
+                           required aria-describedby="item-price-hint">
+                  </span>
+                  <span class="hint" id="item-price-hint">Total you would pay today,
+                    including delivery, in rupees.</span>
+                </p>
+
+                <p class="field">
+                  <label class="label" for="item-category">Category</label>
+                  <select class="select" id="item-category" name="category"
+                          aria-describedby="item-category-hint" required>
+                    <option value="">Choose a category</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="kitchen">Kitchen appliance</option>
+                    <option value="fast-fashion">Clothing</option>
+                    <option value="footwear">Footwear</option>
+                    <option value="fitness">Fitness equipment</option>
+                    <option value="furniture">Furniture</option>
+                    <option value="hobby">Hobby and craft gear</option>
+                    <option value="books">Books and media</option>
+                    <option value="other">Something else</option>
+                  </select>
+                  <span class="hint" id="item-category-hint">Sets the default lifespan,
+                    for example 36 months for electronics.</span>
+                </p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="legend">Why now?</legend>
+            <p class="hint" id="trigger-hint">This feeds the impulse score. Answer it the
+              way it actually happened, not the way it sounds better.</p>
+            <div class="choice-list choice-list--row mt-4" role="radiogroup"
+                 aria-describedby="trigger-hint">
+              <!-- No option is pre-selected on purpose. A default here would be a
+                   nudge, and required on one radio makes the browser demand a
+                   choice for the whole group. -->
+              <label class="choice">
+                <input type="radio" name="trigger" value="replacement" required>
+                <span class="choice__text">
+                  <span class="choice__title">Replacing something</span>
+                  <span class="choice__meta">The old one broke or wore out</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="trigger" value="planned">
+                <span class="choice__text">
+                  <span class="choice__title">Planned a while ago</span>
+                  <span class="choice__meta">Been saving for it</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="trigger" value="offer">
+                <span class="choice__text">
+                  <span class="choice__title">Saw an offer</span>
+                  <span class="choice__meta">Sale, coupon or festival price</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="trigger" value="impulse">
+                <span class="choice__text">
+                  <span class="choice__title">Just want it</span>
+                  <span class="choice__meta">Decided in the last hour</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="btn-row btn-row--split mt-5">
+            <a class="btn btn--secondary" href="index.html">Back to home</a>
+            <button class="btn btn--primary" type="submit">Continue to usage</button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- RIGHT COLUMN: the running bill.
+           aria-live="polite" means Phase 2 can update these figures on every
+           keystroke and a screen reader will read the new total once the user
+           pauses, without moving focus out of the field being typed in. -->
+      <aside class="wizard__bill" aria-labelledby="bill-title">
+        <div class="bill">
+          <h2 class="bill__caption" id="bill-title">Running bill</h2>
+
+          <div class="bill__sum">
+            <p class="bill__numerator">
+              <span>Price</span>
+              <span data-field="price">&#8377;0</span>
+            </p>
+            <hr class="bill__rule">
+            <p class="bill__denominator">
+              <span>Total uses</span>
+              <span data-field="uses">
+                <span aria-hidden="true">&#8212;</span>
+                <span class="sr-only">not set yet</span>
+              </span>
+            </p>
+          </div>
+
+          <div class="bill__quotient live-region" aria-live="polite" aria-atomic="true">
+            <strong class="bill__figure" data-field="cost-per-use">
+              <span aria-hidden="true">&#8212;</span>
+              <span class="sr-only">Cost per use not calculated yet</span>
+            </strong>
+            <span class="bill__unit">per use, once you fill in step 2</span>
+          </div>
+
+          <dl class="bill__breakdown">
+            <div><dt>Category default lifespan</dt><dd data-field="lifespan">not set</dd></div>
+            <div><dt>Impulse score</dt><dd data-field="impulse">not scored</dd></div>
+            <div><dt>Verdict</dt><dd>pending</dd></div>
+          </dl>
+        </div>
+
+        <p class="note mt-4">Nothing is saved yet. Evaluations are stored in MongoDB in
+          Phase 3, once accounts exist.</p>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
+      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>

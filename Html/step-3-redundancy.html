@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 3 of 4: redundancy check - Reality Check</title>
+  <meta name="description" content="Step three of the Reality Check wizard: find out whether you already own, could borrow, or could rent something that does the same job.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="step-1-item.html" aria-current="page">Start a check</a></li>
+          <li><a href="history.html">Your decisions</a></li>
+          <li><a href="alternatives.html">Alternatives</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="steps">
+    <div class="shell">
+      <nav aria-label="Progress through the check">
+        <ol class="steps__list">
+          <li class="steps__item steps__item--done">
+            <span class="steps__num" aria-hidden="true">1</span>Item details
+            <span class="sr-only">completed</span>
+          </li>
+          <li class="steps__item steps__item--done">
+            <span class="steps__num" aria-hidden="true">2</span>Usage and lifespan
+            <span class="sr-only">completed</span>
+          </li>
+          <li class="steps__item" aria-current="step">
+            <span class="steps__num" aria-hidden="true">3</span>Redundancy
+          </li>
+          <li class="steps__item">
+            <span class="steps__num" aria-hidden="true">4</span>Verdict
+          </li>
+        </ol>
+      </nav>
+      <div class="progress-row">
+        <label class="note" for="wizard-progress">Step 3 of 4</label>
+        <progress id="wizard-progress" max="4" value="3">3 of 4 steps done</progress>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main" id="main">
+    <div class="shell wizard">
+
+      <div>
+        <h1 class="page-title">Do you already own the answer?</h1>
+        <p class="lead mt-4">The most expensive purchase is the second one that does the
+          same job. This step looks for that.</p>
+
+        <!-- A warning card. The meaning is carried by the heading text and the
+             left edge, not by colour alone, so it survives a greyscale print
+             and a colour vision deficiency. -->
+        <div class="callout callout--stop mt-5">
+          <p class="callout__title">You logged a moka pot in March 2026</p>
+          <p>It makes the same drink. Keeping the moka pot and skipping this purchase
+            saves the full &#8377;18,499 and adds nothing to your shelf.</p>
+        </div>
+
+        <form class="card mt-5" action="step-4-verdict.html" method="get">
+          <fieldset class="fieldset">
+            <legend class="legend">What you already own</legend>
+            <p class="hint" id="own-hint">Pulled from your past checks. Tick anything that
+              covers the same need.</p>
+            <div class="choice-list mt-4" role="group" aria-describedby="own-hint">
+              <label class="choice">
+                <input type="checkbox" name="owned" value="moka-pot" checked>
+                <span class="choice__text">
+                  <span class="choice__title">Moka pot</span>
+                  <span class="choice__meta">Logged March 2026, used 14 times since</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="checkbox" name="owned" value="french-press">
+                <span class="choice__text">
+                  <span class="choice__title">French press</span>
+                  <span class="choice__meta">Logged November 2025, used 3 times since</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="checkbox" name="owned" value="none">
+                <span class="choice__text">
+                  <span class="choice__title">Nothing here does the job</span>
+                  <span class="choice__meta">Clears the duplicate warning</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="legend">Other ways to get it</legend>
+            <div class="choice-list choice-list--row mt-4" role="radiogroup"
+                 aria-describedby="access-hint">
+              <label class="choice">
+                <input type="radio" name="access" value="buy-only" checked>
+                <span class="choice__text">
+                  <span class="choice__title">Buying is the only way</span>
+                  <span class="choice__meta">No loan or rental exists</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="access" value="borrow">
+                <span class="choice__text">
+                  <span class="choice__title">Someone would lend it</span>
+                  <span class="choice__meta">Free, for a short period</span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="access" value="rent">
+                <span class="choice__text">
+                  <span class="choice__title">It can be rented</span>
+                  <span class="choice__meta">Per day or per month</span>
+                </span>
+              </label>
+            </div>
+            <p class="hint" id="access-hint">If borrowing covers the need, the verdict will
+              say so rather than pricing the purchase.</p>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="legend">Cheaper option you found</legend>
+            <div class="field-grid field-grid--two mt-4">
+              <p class="field">
+                <label class="label" for="alt-name">What it is</label>
+                <input class="input" type="text" id="alt-name" name="altName"
+                       placeholder="Refurbished, one model older" autocomplete="off"
+                       aria-describedby="alt-name-hint">
+                <span class="hint" id="alt-name-hint">Optional. Saved to the shared
+                  alternatives list in Phase 3.</span>
+              </p>
+              <p class="field">
+                <label class="label" for="alt-price">Its price</label>
+                <span class="input-money">
+                  <span class="input-money__symbol" aria-hidden="true">&#8377;</span>
+                  <input class="input" type="number" id="alt-price" name="altPrice"
+                         min="0" step="1" inputmode="numeric" placeholder="7900"
+                         aria-describedby="alt-price-hint">
+                </span>
+                <span class="hint" id="alt-price-hint">Used to show the gap between what
+                  you want and what would do.</span>
+              </p>
+            </div>
+          </fieldset>
+
+          <div class="btn-row btn-row--split mt-5">
+            <a class="btn btn--secondary" href="step-2-usage.html">Back to usage</a>
+            <button class="btn btn--primary" type="submit">See the verdict</button>
+          </div>
+
+        </form>
+      </div>
+
+      <aside class="wizard__bill" aria-labelledby="bill-title">
+        <div class="bill">
+          <h2 class="bill__caption" id="bill-title">Running bill</h2>
+
+          <div class="bill__sum">
+            <p class="bill__numerator">
+              <span>Price</span>
+              <span data-field="price">&#8377;18,499</span>
+            </p>
+            <hr class="bill__rule">
+            <p class="bill__denominator">
+              <span>Total uses</span>
+              <span data-field="uses">48</span>
+            </p>
+          </div>
+
+          <div class="bill__quotient live-region" aria-live="polite" aria-atomic="true">
+            <strong class="bill__figure" data-field="cost-per-use">&#8377;385</strong>
+            <span class="bill__unit">per use, before the duplicate is counted</span>
+          </div>
+
+          <dl class="bill__breakdown">
+            <div><dt>Duplicate on your shelf</dt><dd>moka pot</dd></div>
+            <div><dt>Cheaper option you found</dt><dd>refurbished, &#8377;7,900</dd></div>
+            <div><dt>Impulse score</dt><dd data-field="impulse">88 of 100</dd></div>
+          </dl>
+
+          <div class="mt-4">
+            <div class="meter" role="img" aria-label="Impulse score 88 out of 100, inside the 75 to 89 wait band">
+              <div class="meter__fill" style="width: 88%"></div>
+            </div>
+          </div>
+
+          <p class="mt-4"><span class="pill pill--stop">Duplicate found</span></p>
+        </div>
+
+        <p class="note mt-4">All five factors are now answered, so the score is final at
+          88. Confirming the duplicate is what moved it into the wait band. Phase 2
+          recalculates this the moment a box is ticked.</p>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
+      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>

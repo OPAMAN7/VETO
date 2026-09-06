@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reality Check - work out what a purchase costs per use</title>
+  <meta name="description" content="Reality Check turns a purchase price into a cost per use, scores how impulsive the buy is, and gives you a verdict before you spend.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Skip link: first thing in the tab order so keyboard users can jump
+       past the navigation straight into the page content. -->
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="wordmark" href="index.html">
+        <span class="wordmark__mark" aria-hidden="true">&#8377;</span>Reality Check
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="step-1-item.html">Start a check</a></li>
+          <li><a href="history.html">Your decisions</a></li>
+          <li><a href="alternatives.html">Alternatives</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main" id="main">
+    <div class="shell">
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__copy">
+          <h1 class="page-title" id="hero-title">A price tag tells you almost nothing.</h1>
+          <p class="lead">Reality Check converts a purchase into the only number that
+            matters: what one use of it costs you. Answer four short steps and get a
+            verdict you can defend to yourself later.</p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="step-1-item.html">Start a check</a>
+            <a class="btn btn--secondary" href="history.html">See past decisions</a>
+          </div>
+          <dl class="stat-row">
+            <div>
+              <dt class="stat__label">Steps in a check</dt>
+              <dd class="stat__figure">4</dd>
+            </div>
+            <div>
+              <dt class="stat__label">Cooling-off lock on high-impulse buys</dt>
+              <dd class="stat__figure">48 h</dd>
+            </div>
+            <div>
+              <dt class="stat__label">Days later, we ask what you actually used</dt>
+              <dd class="stat__figure">30</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- The hero shows the arithmetic the product performs, on a real
+             example, instead of describing the product in the abstract. -->
+        <figure class="receipt">
+          <figcaption class="receipt__head">
+            <span>Worked example</span>
+            <span>Espresso machine</span>
+          </figcaption>
+          <div class="receipt__line"><span>Listed price</span><span class="strong">&#8377;18,499</span></div>
+          <div class="receipt__line"><span>Honest frequency</span><span class="strong">2 a month</span></div>
+          <div class="receipt__line"><span>Realistic lifespan</span><span class="strong">24 months</span></div>
+          <div class="receipt__line"><span>Total uses</span><span class="strong">48</span></div>
+          <div class="receipt__line receipt__total">
+            <span class="strong">Cost per use</span>
+            <span class="figure-tight">&#8377;385</span>
+          </div>
+          <p class="mt-3"><span class="pill pill--wait">Wait 48 hours</span></p>
+        </figure>
+      </section>
+
+      <hr class="divider">
+
+      <section aria-labelledby="how-title">
+        <h2 class="section-title" id="how-title">How a check runs</h2>
+        <ol class="flow">
+          <li class="flow__item">
+            <div>
+              <h3 class="sub-title">Describe the item</h3>
+              <p class="muted">Name, category and price. The category sets a default
+                lifespan, so a phone is not judged on the same clock as a t-shirt.</p>
+            </div>
+          </li>
+          <li class="flow__item">
+            <div>
+              <h3 class="sub-title">Commit to a frequency</h3>
+              <p class="muted">Say how often you will really use it and for how long.
+                Cost per use updates as you move the sliders.</p>
+            </div>
+          </li>
+          <li class="flow__item">
+            <div>
+              <h3 class="sub-title">Check for a duplicate</h3>
+              <p class="muted">If you already own something that does the job, or it can
+                be borrowed or rented, that lands on the bill.</p>
+            </div>
+          </li>
+          <li class="flow__item">
+            <div>
+              <h3 class="sub-title">Read the verdict</h3>
+              <p class="muted">Buy it, wait 48 hours, or skip it - with the numbers
+                behind the call shown next to it.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <hr class="divider">
+
+      <section aria-labelledby="basis-title">
+        <h2 class="section-title" id="basis-title">What the verdict is built from</h2>
+        <p class="lead mt-3">Three measures, each computed in the browser from what you
+          type. Every one of them is shown to you, so a verdict is never a black box.</p>
+
+        <div class="card-grid mt-5">
+          <article class="card">
+            <h3 class="sub-title">Cost per use</h3>
+            <p class="muted mt-3">Price divided by the number of times you expect to use
+              the item over its life. A cheap thing used once is expensive.</p>
+            <p class="mt-3"><code>price / (uses per month &#215; months)</code></p>
+          </article>
+          <article class="card">
+            <h3 class="sub-title">Impulse score</h3>
+            <p class="muted mt-3">A 0 to 100 weighting of price against your budget,
+              whether a duplicate already exists, and how easily the need can be met
+              another way. Two thresholds turn the score into a verdict.</p>
+            <!-- Each band names its verdict in words as well as showing a colour,
+                 so the meaning does not depend on hue alone (WCAG 1.4.1). -->
+            <div class="mt-4">
+              <div class="band">
+                <span>Under 75</span>
+                <div class="meter" role="img" aria-label="Buy band, shown at 40 out of 100">
+                  <div class="meter__fill meter__fill--good" style="width: 40%"></div>
+                </div>
+              </div>
+              <div class="band">
+                <span>75 to 89</span>
+                <div class="meter" role="img" aria-label="Wait band, shown at 88 out of 100">
+                  <div class="meter__fill" style="width: 88%"></div>
+                </div>
+              </div>
+              <div class="band">
+                <span>90 and over</span>
+                <div class="meter" role="img" aria-label="Skip band, shown at 95 out of 100">
+                  <div class="meter__fill meter__fill--stop" style="width: 95%"></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <h3 class="sub-title">Redundancy</h3>
+            <p class="muted mt-3">What you already own, what a friend could lend, and
+              what the same job costs to rent instead of buy.</p>
+            <p class="mt-3"><span class="pill pill--stop">Duplicate found</span></p>
+          </article>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <section class="callout callout--good" aria-labelledby="cta-title">
+        <h2 class="sub-title" id="cta-title">Have something in a cart right now?</h2>
+        <p class="mt-3">A check takes about two minutes. Nothing is bought or linked -
+          this only does the arithmetic and tells you what it found.</p>
+        <p class="mt-4"><a class="btn btn--primary" href="step-1-item.html">Start a check</a></p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Reality Check - Phase 1 prototype, HTML and CSS only. CSE 2022 Web Programming.</p>
+      <p><a href="https://github.com/your-team/reality-check">Project repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>
