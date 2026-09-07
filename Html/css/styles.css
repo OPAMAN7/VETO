@@ -99,7 +99,7 @@ ul, ol { list-style: none; }
 }
 
 
-/* Accessibility: all pages. */
+/* Accessibility: all pages. ..... */
 :focus-visible {
   outline: 3px solid var(--stamp);
   outline-offset: 2px;
