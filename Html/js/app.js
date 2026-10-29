@@ -74,6 +74,55 @@
     return Math.min(100, score);
   }
 
+  function formatRupees(amount) {
+    return '\u20b9' + Math.round(amount).toLocaleString('en-IN');
+  }
+
+  function updateSidebarBill(draft) {
+    var sidebar = document.querySelector('.wizard__bill');
+    if (!sidebar) {
+      return;
+    }
+
+    var source = normalizeDraft(draft);
+    var price = Number(source.price);
+    var usesPerMonth = Number(source.usesPerMonth);
+    var lifespanMonths = Number(source.lifespanMonths);
+    var totalUses = usesPerMonth * lifespanMonths;
+    var isPriceValid = isFinite(price) && price > 0;
+    var isUsageValid = isFinite(totalUses) && totalUses > 0;
+    var score = source.trigger ? calculateImpulseScore(source) : null;
+    var priceValue = sidebar.querySelector("[data-field='price']");
+    var usesValue = sidebar.querySelector("[data-field='uses']");
+    var costPerUseValue = sidebar.querySelector("[data-field='cost-per-use']");
+    var impulseValue = sidebar.querySelector("[data-field='impulse']");
+    var meterFill = sidebar.querySelector('.meter__fill');
+
+    if (priceValue) {
+      priceValue.textContent = formatRupees(isPriceValid ? price : 0);
+    }
+    if (usesValue) {
+      usesValue.textContent = isUsageValid ? totalUses : '\u2014';
+    }
+    if (costPerUseValue) {
+      costPerUseValue.textContent = isPriceValid && isUsageValid
+        ? formatRupees(calculateCostPerUse(price, usesPerMonth, lifespanMonths))
+        : '\u2014';
+    }
+    if (impulseValue) {
+      impulseValue.textContent = score === null ? 'not scored' : score + ' of 100';
+    }
+    if (meterFill) {
+      meterFill.style.width = (score === null ? 0 : score) + '%';
+      var meter = meterFill.parentNode;
+      if (meter && meter.setAttribute) {
+        meter.setAttribute('aria-label', score === null
+          ? 'Impulse score not scored'
+          : 'Impulse score ' + score + ' out of 100');
+      }
+    }
+  }
+
   function cloneDefaultDraft() {
     return {
       name: DEFAULT_DRAFT.name,
@@ -272,7 +321,14 @@
     var usageForm = document.querySelector("form[data-step='usage']");
     if (stepForm) {
       restoreForm(stepForm);
+      stepForm.addEventListener('input', function () {
+        updateSidebarBill(formDraft(stepForm));
+      });
+      stepForm.addEventListener('change', function () {
+        updateSidebarBill(formDraft(stepForm));
+      });
     }
+    updateSidebarBill(getDraft());
 
     if (itemForm) {
       itemForm.addEventListener('submit', function (event) {
@@ -302,6 +358,24 @@
       var lifespanMonths = usageForm.querySelector('#lifespan');
       var continueButton = usageForm.querySelector('button[type="submit"]');
       var error = document.getElementById('usage-values-error');
+      var usesPerMonthValue = document.querySelector("[data-field='uses-per-month']");
+      var lifespanValue = document.querySelector("[data-field='lifespan']");
+      var totalUsesValue = document.querySelector("[data-field='uses']");
+
+      function updateUsageReadouts() {
+        var uses = usesPerMonth ? Number(usesPerMonth.value) : 0;
+        var lifespan = lifespanMonths ? Number(lifespanMonths.value) : 0;
+
+        if (usesPerMonthValue && usesPerMonth) {
+          usesPerMonthValue.textContent = uses + ' a month';
+        }
+        if (lifespanValue && lifespanMonths) {
+          lifespanValue.textContent = lifespan + ' months';
+        }
+        if (totalUsesValue && usesPerMonth && lifespanMonths) {
+          totalUsesValue.textContent = uses * lifespan;
+        }
+      }
 
       function updateUsageState() {
         var isValid = usesPerMonth && Number(usesPerMonth.value) > 0
@@ -317,15 +391,19 @@
         return isValid;
       }
 
+      updateUsageReadouts();
       updateUsageState();
-      usageForm.addEventListener('input', function (event) {
-        if (event.target.type === 'range') {
-          formDraft(usageForm);
-          updateUsageState();
+      [usesPerMonth, lifespanMonths].forEach(function (slider) {
+        if (!slider) {
+          return;
         }
+
+        slider.addEventListener('input', function () {
+          updateUsageState();
+          updateUsageReadouts();
+        });
       });
       usageForm.addEventListener('change', function () {
-        formDraft(usageForm);
         updateUsageState();
       });
       usageForm.addEventListener('submit', function (event) {
@@ -360,6 +438,7 @@
   window.saveDecision = saveDecision;
   window.calculateCostPerUse = calculateCostPerUse;
   window.calculateImpulseScore = calculateImpulseScore;
+  window.updateSidebarBill = updateSidebarBill;
   window.initStepRouting = initStepRouting;
   window.syncNavigationState = syncNavigationState;
   window.VETO = {
@@ -369,6 +448,7 @@
     saveDecision: saveDecision,
     calculateCostPerUse: calculateCostPerUse,
     calculateImpulseScore: calculateImpulseScore,
+    updateSidebarBill: updateSidebarBill,
     initStepRouting: initStepRouting,
     syncNavigationState: syncNavigationState
   };
