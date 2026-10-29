@@ -268,8 +268,75 @@
     initStepRouting();
 
     var stepForm = document.querySelector('[data-step]');
+    var itemForm = document.querySelector("form[data-step='item']");
+    var usageForm = document.querySelector("form[data-step='usage']");
     if (stepForm) {
       restoreForm(stepForm);
+    }
+
+    if (itemForm) {
+      itemForm.addEventListener('submit', function (event) {
+        var itemName = itemForm.querySelector('#item-name');
+        var itemPrice = itemForm.querySelector('#item-price');
+        var itemCategory = itemForm.querySelector('#item-category');
+        var trigger = itemForm.querySelector('input[name="trigger"]:checked');
+        var error = document.getElementById('item-name-error');
+        var isValid = itemName && itemName.value.trim() !== ''
+          && itemPrice && Number(itemPrice.value) > 0
+          && itemCategory && itemCategory.value !== ''
+          && trigger;
+
+        if (error) {
+          error.hidden = Boolean(isValid);
+        }
+
+        if (!isValid) {
+          event.preventDefault();
+          return;
+        }
+
+        formDraft(itemForm);
+      });
+    } else if (usageForm) {
+      var usesPerMonth = usageForm.querySelector('#uses-per-month');
+      var lifespanMonths = usageForm.querySelector('#lifespan');
+      var continueButton = usageForm.querySelector('button[type="submit"]');
+      var error = document.getElementById('usage-values-error');
+
+      function updateUsageState() {
+        var isValid = usesPerMonth && Number(usesPerMonth.value) > 0
+          && lifespanMonths && Number(lifespanMonths.value) > 0;
+
+        if (continueButton) {
+          continueButton.disabled = !isValid;
+        }
+        if (error) {
+          error.hidden = Boolean(isValid);
+        }
+
+        return isValid;
+      }
+
+      updateUsageState();
+      usageForm.addEventListener('input', function (event) {
+        if (event.target.type === 'range') {
+          formDraft(usageForm);
+          updateUsageState();
+        }
+      });
+      usageForm.addEventListener('change', function () {
+        formDraft(usageForm);
+        updateUsageState();
+      });
+      usageForm.addEventListener('submit', function (event) {
+        if (!updateUsageState()) {
+          event.preventDefault();
+          return;
+        }
+
+        formDraft(usageForm);
+      });
+    } else if (stepForm) {
       stepForm.addEventListener('submit', function () {
         formDraft(stepForm);
       });
