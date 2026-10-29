@@ -1,0 +1,25 @@
+{
+  "exportedAt": "2026-10-29T18:46:20.402Z",
+  "decisions": [
+    {
+      "outcome": "delayed",
+      "draft": {
+        "name": "espresso",
+        "price": "237",
+        "category": "kitchen",
+        "trigger": "planned",
+        "usesPerMonth": "16",
+        "lifespanMonths": "45",
+        "honesty": [],
+        "owned": [
+          "moka-pot"
+        ],
+        "access": "buy-only",
+        "altName": "nothing",
+        "altPrice": ""
+      },
+      "id": "1793299580401",
+      "savedAt": "2026-10-29T18:46:20.401Z"
+    }
+  ]
+}

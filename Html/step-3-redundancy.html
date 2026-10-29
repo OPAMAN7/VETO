@@ -71,7 +71,7 @@
             saves the full &#8377;18,499 and adds nothing to your shelf.</p>
         </div>
 
-        <form class="card mt-5" action="step-4-verdict.html" method="get" data-step="redundancy">
+        <form class="card mt-5" action="step-4-verdict.html" method="get" data-step="redundancy" novalidate>
           <fieldset class="fieldset">
             <legend class="legend">What you already own</legend>
             <p class="hint" id="own-hint">Pulled from your past checks. Tick anything that
@@ -106,7 +106,7 @@
             <div class="choice-list choice-list--row mt-4" role="radiogroup"
                  aria-describedby="access-hint">
               <label class="choice">
-                <input type="radio" name="access" value="buy-only" checked>
+                <input type="radio" name="access" value="buy-only" checked required>
                 <span class="choice__text">
                   <span class="choice__title">Buying is the only way</span>
                   <span class="choice__meta">No loan or rental exists</span>

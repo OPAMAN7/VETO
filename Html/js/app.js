@@ -199,9 +199,8 @@
     var outcomeFilter = document.getElementById('filter-outcome');
     var searchFilter = document.getElementById('filter-search');
     var form = tableBody.closest('section').querySelector('form');
-    var decisions = getDecisions();
-
-    renderDecisionRows(tableBody, decisions);
+    var status = document.getElementById('decision-history-status');
+    var decisions = [];
 
     function applyFilters() {
       var outcome = outcomeFilter ? outcomeFilter.value : 'all';
@@ -255,7 +254,21 @@
         applyFilters();
       });
     }
-    applyFilters();
+
+    migrateLegacyDecisions()
+      .then(getDecisions)
+      .then(function (storedDecisions) {
+        decisions = storedDecisions;
+        renderDecisionRows(tableBody, decisions);
+        applyFilters();
+      })
+      .catch(function (error) {
+        console.error('VETO could not load decision history.', error);
+        if (status) {
+          status.hidden = false;
+          status.textContent = 'Could not load saved decisions. Make sure the VETO server is running and reload this page.';
+        }
+      });
   }
 
   function cloneDefaultDraft() {
@@ -322,41 +335,53 @@
     return normalized;
   }
 
+  function requestJson(path, options) {
+    return window.fetch(path, options).then(function (response) {
+      return response.json().catch(function () {
+        return {};
+      }).then(function (result) {
+        if (!response.ok) {
+          throw new Error(result.error || 'The VETO server returned an error.');
+        }
+        return result;
+      });
+    });
+  }
+
   function getDecisions() {
-    var decisions = readStorage(DECISIONS_KEY, []);
-    return Array.isArray(decisions) ? decisions : [];
+    return requestJson('/api/decisions').then(function (result) {
+      return result.decisions;
+    });
   }
 
   function saveDecision(decision) {
-    var decisions = getDecisions();
     var savedDecision = decision && typeof decision === 'object'
       ? Object.assign({}, decision)
       : {};
 
-    savedDecision.id = savedDecision.id || Date.now().toString();
-    savedDecision.savedAt = savedDecision.savedAt || new Date().toISOString();
     savedDecision.draft = normalizeDraft(savedDecision.draft || getDraft());
-    decisions.push(savedDecision);
-    writeStorage(DECISIONS_KEY, decisions);
-    return savedDecision;
+    return requestJson('/api/decisions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(savedDecision)
+    }).then(function (result) {
+      return result.decision;
+    });
   }
 
-  function downloadDecisionHistory() {
-    var blob = new Blob([JSON.stringify({
-      exportedAt: new Date().toISOString(),
-      decisions: getDecisions()
-    }, null, 2)], { type: 'application/json' });
-    var downloadUrl = window.URL.createObjectURL(blob);
-    var downloadLink = document.createElement('a');
+  function migrateLegacyDecisions() {
+    var legacyDecisions = readStorage(DECISIONS_KEY, []);
+    if (!Array.isArray(legacyDecisions) || legacyDecisions.length === 0) {
+      return Promise.resolve();
+    }
 
-    downloadLink.href = downloadUrl;
-    downloadLink.download = 'veto_decisions.json';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    window.setTimeout(function () {
-      window.URL.revokeObjectURL(downloadUrl);
-    }, 1000);
+    return legacyDecisions.reduce(function (migration, decision) {
+      return migration.then(function () {
+        return saveDecision(decision);
+      });
+    }, Promise.resolve()).then(function () {
+      window.localStorage.removeItem(DECISIONS_KEY);
+    });
   }
 
   function initVerdictCountdown() {
@@ -527,6 +552,7 @@
     var stepForm = document.querySelector('[data-step]');
     var itemForm = document.querySelector("form[data-step='item']");
     var usageForm = document.querySelector("form[data-step='usage']");
+    var redundancyForm = document.querySelector("form[data-step='redundancy']");
     if (stepForm) {
       restoreForm(stepForm);
       stepForm.addEventListener('input', function () {
@@ -556,6 +582,20 @@
 
         if (!isValid) {
           event.preventDefault();
+          var missingFields = [];
+          if (!itemName || itemName.value.trim() === '') {
+            missingFields.push('item name');
+          }
+          if (!itemPrice || Number(itemPrice.value) <= 0) {
+            missingFields.push('a price greater than zero');
+          }
+          if (!itemCategory || itemCategory.value === '') {
+            missingFields.push('a category');
+          }
+          if (!trigger) {
+            missingFields.push('why you want the item now');
+          }
+          window.alert('Please complete the required fields: ' + missingFields.join(', ') + '.');
           return;
         }
 
@@ -564,7 +604,6 @@
     } else if (usageForm) {
       var usesPerMonth = usageForm.querySelector('#uses-per-month');
       var lifespanMonths = usageForm.querySelector('#lifespan');
-      var continueButton = usageForm.querySelector('button[type="submit"]');
       var error = document.getElementById('usage-values-error');
       var usesPerMonthValue = document.querySelector("[data-field='uses-per-month']");
       var lifespanValue = document.querySelector("[data-field='lifespan']");
@@ -589,9 +628,6 @@
         var isValid = usesPerMonth && Number(usesPerMonth.value) > 0
           && lifespanMonths && Number(lifespanMonths.value) > 0;
 
-        if (continueButton) {
-          continueButton.disabled = !isValid;
-        }
         if (error) {
           error.hidden = Boolean(isValid);
         }
@@ -617,10 +653,41 @@
       usageForm.addEventListener('submit', function (event) {
         if (!updateUsageState()) {
           event.preventDefault();
+          window.alert('Please enter a positive value for uses per month and expected lifespan.');
           return;
         }
 
         formDraft(usageForm);
+      });
+    } else if (redundancyForm) {
+      redundancyForm.addEventListener('submit', function (event) {
+        var owned = redundancyForm.querySelectorAll('input[name="owned"]:checked');
+        var access = redundancyForm.querySelector('input[name="access"]:checked');
+        var alternativeName = redundancyForm.querySelector('#alt-name');
+        var alternativePrice = redundancyForm.querySelector('#alt-price');
+        var hasAlternative = alternativeName && alternativeName.value.trim() !== ''
+          || alternativePrice && alternativePrice.value !== '';
+        var hasCompleteAlternative = alternativeName && alternativeName.value.trim() !== ''
+          && alternativePrice && Number(alternativePrice.value) > 0;
+        var missingFields = [];
+
+        if (owned.length === 0) {
+          missingFields.push('whether you own something that meets this need');
+        }
+        if (!access) {
+          missingFields.push('how else you could get the item');
+        }
+        if (hasAlternative && !hasCompleteAlternative) {
+          missingFields.push('both the alternative name and a positive alternative price');
+        }
+
+        if (missingFields.length > 0) {
+          event.preventDefault();
+          window.alert('Please complete the required fields: ' + missingFields.join(', ') + '.');
+          return;
+        }
+
+        formDraft(redundancyForm);
       });
     } else if (stepForm) {
       stepForm.addEventListener('submit', function () {
@@ -631,12 +698,26 @@
     var decisionForm = document.querySelector('[data-decision]');
     if (decisionForm) {
       decisionForm.addEventListener('submit', function (event) {
+        event.preventDefault();
         var submitter = event.submitter;
+        var status = document.getElementById('decision-save-status');
+        if (status) {
+          status.hidden = false;
+          status.textContent = 'Saving decision...';
+        }
+
         saveDecision({
           outcome: submitter ? submitter.value : '',
           draft: getDraft()
+        }).then(function () {
+          window.location.href = 'history.html';
+        }).catch(function (error) {
+          console.error('VETO could not save decision.', error);
+          if (status) {
+            status.hidden = false;
+            status.textContent = 'Could not save your decision. Make sure the VETO server is running, then try again.';
+          }
         });
-        downloadDecisionHistory();
       });
     }
   }
@@ -645,7 +726,6 @@
   window.saveDraft = saveDraft;
   window.getDecisions = getDecisions;
   window.saveDecision = saveDecision;
-  window.downloadDecisionHistory = downloadDecisionHistory;
   window.initVerdictCountdown = initVerdictCountdown;
   window.calculateCostPerUse = calculateCostPerUse;
   window.calculateImpulseScore = calculateImpulseScore;
@@ -657,7 +737,6 @@
     saveDraft: saveDraft,
     getDecisions: getDecisions,
     saveDecision: saveDecision,
-    downloadDecisionHistory: downloadDecisionHistory,
     initVerdictCountdown: initVerdictCountdown,
     calculateCostPerUse: calculateCostPerUse,
     calculateImpulseScore: calculateImpulseScore,

@@ -1,0 +1,12 @@
+{
+  "name": "veto",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VETO local purchase decision tracker",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
