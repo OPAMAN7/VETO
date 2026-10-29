@@ -197,7 +197,76 @@
     });
   }
 
+  function initStepRouting() {
+    var stepPages = [
+      'step-2-usage.html',
+      'step-3-redundancy.html',
+      'step-4-verdict.html'
+    ];
+    var currentPath = window.location && window.location.pathname
+      ? window.location.pathname
+      : '';
+    var currentPage = currentPath.split('/').pop();
+    var draft = getDraft();
+    var hasStepOneData = typeof draft.name === 'string' && draft.name.trim() !== ''
+      && Number(draft.price) > 0
+      && typeof draft.category === 'string' && draft.category !== ''
+      && typeof draft.trigger === 'string' && draft.trigger !== '';
+
+    if (stepPages.indexOf(currentPage) !== -1 && !hasStepOneData) {
+      window.alert('Complete Step 1 before continuing.');
+      window.location.href = 'step-1-item.html';
+    }
+  }
+
+  function syncNavigationState() {
+    var currentPath = window.location && window.location.pathname
+      ? window.location.pathname
+      : '';
+    var currentPage = currentPath.split('/').pop() || 'index.html';
+    var navigationLinks = document.querySelectorAll('.site-nav a');
+    var stepPages = [
+      'step-1-item.html',
+      'step-2-usage.html',
+      'step-3-redundancy.html',
+      'step-4-verdict.html'
+    ];
+    var stepIndex = stepPages.indexOf(currentPage);
+    var progress = document.getElementById('wizard-progress');
+    var activeNavigationPage = stepIndex !== -1 ? 'step-1-item.html' : currentPage;
+
+    Array.prototype.forEach.call(navigationLinks, function (link) {
+      var linkPage = (link.getAttribute('href') || '').split('/').pop();
+      if (linkPage === activeNavigationPage) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+
+    if (progress && stepIndex !== -1) {
+      progress.max = stepPages.length;
+      progress.value = stepIndex + 1;
+      progress.textContent = (stepIndex + 1) + ' of ' + stepPages.length + ' steps done';
+    }
+
+    var stepForm = document.querySelector('[data-step]');
+    if (stepForm) {
+      Array.prototype.forEach.call(stepForm.querySelectorAll('a[href]'), function (link) {
+        var targetPage = (link.getAttribute('href') || '').split('/').pop();
+        if (stepPages.indexOf(targetPage) !== -1 && targetPage !== currentPage) {
+          link.addEventListener('click', function () {
+            formDraft(stepForm);
+          });
+        }
+      });
+    }
+  }
+
   function initialize() {
+    syncNavigationState();
+    initStepRouting();
+
     var stepForm = document.querySelector('[data-step]');
     if (stepForm) {
       restoreForm(stepForm);
@@ -224,13 +293,17 @@
   window.saveDecision = saveDecision;
   window.calculateCostPerUse = calculateCostPerUse;
   window.calculateImpulseScore = calculateImpulseScore;
+  window.initStepRouting = initStepRouting;
+  window.syncNavigationState = syncNavigationState;
   window.VETO = {
     getDraft: getDraft,
     saveDraft: saveDraft,
     getDecisions: getDecisions,
     saveDecision: saveDecision,
     calculateCostPerUse: calculateCostPerUse,
-    calculateImpulseScore: calculateImpulseScore
+    calculateImpulseScore: calculateImpulseScore,
+    initStepRouting: initStepRouting,
+    syncNavigationState: syncNavigationState
   };
 
   document.addEventListener('DOMContentLoaded', initialize);
