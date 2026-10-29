@@ -123,6 +123,139 @@
     }
   }
 
+  function getDecisionStatus(outcome) {
+    var statuses = {
+      bought: { label: 'Bought', className: 'pill--good' },
+      delayed: { label: 'Waiting', className: 'pill--wait' },
+      passed: { label: 'Skipped', className: 'pill--stop' }
+    };
+
+    return statuses[outcome] || { label: 'Unknown', className: '' };
+  }
+
+  function renderDecisionRows(tableBody, decisions) {
+    tableBody.textContent = '';
+
+    decisions.forEach(function (decision) {
+      if (!decision || typeof decision !== 'object') {
+        return;
+      }
+
+      var draft = normalizeDraft(decision.draft);
+      var price = Number(draft.price);
+      var uses = Number(draft.usesPerMonth) * Number(draft.lifespanMonths);
+      var date = new Date(decision.savedAt);
+      var status = getDecisionStatus(decision.outcome);
+      var row = document.createElement('tr');
+      var itemCell = document.createElement('th');
+      var dateCell = document.createElement('td');
+      var priceCell = document.createElement('td');
+      var costCell = document.createElement('td');
+      var scoreCell = document.createElement('td');
+      var statusCell = document.createElement('td');
+      var time = document.createElement('time');
+      var pill = document.createElement('span');
+
+      itemCell.scope = 'row';
+      itemCell.textContent = draft.name || 'Unnamed item';
+      if (isFinite(date.getTime())) {
+        time.dateTime = date.toISOString();
+        time.textContent = date.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+        dateCell.appendChild(time);
+      } else {
+        dateCell.textContent = 'Unknown date';
+      }
+      priceCell.textContent = isFinite(price) && price > 0 ? formatRupees(price) : '\u2014';
+      costCell.textContent = isFinite(price) && price > 0 && isFinite(uses) && uses > 0
+        ? formatRupees(calculateCostPerUse(price, Number(draft.usesPerMonth), Number(draft.lifespanMonths)))
+        : '\u2014';
+      scoreCell.textContent = draft.trigger ? String(calculateImpulseScore(draft)) : '\u2014';
+      pill.className = 'pill' + (status.className ? ' ' + status.className : '');
+      pill.textContent = status.label;
+      statusCell.appendChild(pill);
+
+      row.appendChild(itemCell);
+      row.appendChild(dateCell);
+      row.appendChild(priceCell);
+      row.appendChild(costCell);
+      row.appendChild(scoreCell);
+      row.appendChild(statusCell);
+      tableBody.appendChild(row);
+    });
+  }
+
+  function initHistory() {
+    var tableBody = document.querySelector('[data-decision-rows]');
+    if (!tableBody) {
+      return;
+    }
+
+    var outcomeFilter = document.getElementById('filter-outcome');
+    var searchFilter = document.getElementById('filter-search');
+    var form = tableBody.closest('section').querySelector('form');
+    var decisions = getDecisions();
+
+    renderDecisionRows(tableBody, decisions);
+
+    function applyFilters() {
+      var outcome = outcomeFilter ? outcomeFilter.value : 'all';
+      var keyword = searchFilter ? searchFilter.value.trim().toLocaleLowerCase() : '';
+      var emptyState = tableBody.querySelector('[data-empty-state]');
+      var matchingRows = 0;
+
+      if (emptyState) {
+        emptyState.remove();
+      }
+
+      Array.prototype.forEach.call(tableBody.querySelectorAll('tr'), function (row) {
+        var status = row.cells.length > 5
+          ? row.cells[5].textContent.trim().toLocaleLowerCase()
+          : '';
+        var matchesOutcome = outcome === 'all'
+          || (outcome === 'passed' && status === 'skipped')
+          || (outcome === 'delayed' && status === 'waiting')
+          || (outcome === 'bought' && status === 'bought');
+        var matchesKeyword = row.textContent.toLocaleLowerCase().indexOf(keyword) !== -1;
+
+        row.hidden = !matchesOutcome || !matchesKeyword;
+        if (!row.hidden) {
+          matchingRows += 1;
+        }
+      });
+
+      if (matchingRows === 0) {
+        var emptyRow = document.createElement('tr');
+        var emptyCell = document.createElement('td');
+        emptyCell.colSpan = 6;
+        emptyCell.textContent = decisions.length
+          ? 'No decisions match these filters.'
+          : 'No saved decisions yet.';
+        emptyRow.setAttribute('data-empty-state', '');
+        emptyRow.appendChild(emptyCell);
+        tableBody.appendChild(emptyRow);
+      }
+    }
+
+    if (outcomeFilter) {
+      outcomeFilter.addEventListener('input', applyFilters);
+      outcomeFilter.addEventListener('change', applyFilters);
+    }
+    if (searchFilter) {
+      searchFilter.addEventListener('input', applyFilters);
+    }
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        applyFilters();
+      });
+    }
+    applyFilters();
+  }
+
   function cloneDefaultDraft() {
     return {
       name: DEFAULT_DRAFT.name,
@@ -315,6 +448,7 @@
   function initialize() {
     syncNavigationState();
     initStepRouting();
+    initHistory();
 
     var stepForm = document.querySelector('[data-step]');
     var itemForm = document.querySelector("form[data-step='item']");
