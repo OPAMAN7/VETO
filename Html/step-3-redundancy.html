@@ -71,7 +71,7 @@
             saves the full &#8377;18,499 and adds nothing to your shelf.</p>
         </div>
 
-        <form class="card mt-5" action="step-4-verdict.html" method="get">
+        <form class="card mt-5" action="step-4-verdict.html" method="get" data-step="redundancy">
           <fieldset class="fieldset">
             <legend class="legend">What you already own</legend>
             <p class="hint" id="own-hint">Pulled from your past checks. Tick anything that
@@ -139,8 +139,7 @@
                 <input class="input" type="text" id="alt-name" name="altName"
                        placeholder="Refurbished, one model older" autocomplete="off"
                        aria-describedby="alt-name-hint">
-                <span class="hint" id="alt-name-hint">Optional. Saved to the shared
-                  alternatives list in Phase 3.</span>
+                <span class="hint" id="alt-name-hint">Optional. Included with this decision when you save it.</span>
               </p>
               <p class="field">
                 <label class="label" for="alt-price">Its price</label>
@@ -200,9 +199,7 @@
           <p class="mt-4"><span class="pill pill--stop">Duplicate found</span></p>
         </div>
 
-        <p class="note mt-4">All five factors are now answered, so the score is final at
-          88. Confirming the duplicate is what moved it into the wait band. Phase 2
-          recalculates this the moment a box is ticked.</p>
+        <p class="note mt-4">Your answers are saved in this browser as you move between steps.</p>
       </aside>
 
     </div>
@@ -213,5 +210,6 @@
       <p>VETO</p>
     </div>
   </footer>
+  <script src="js/app.js" defer></script>
 </body>
 </html>

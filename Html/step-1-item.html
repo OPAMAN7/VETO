@@ -63,7 +63,7 @@
         <p class="lead mt-4">Price and category only. The category decides the default
           lifespan used in the next step.</p>
 
-        <form class="card mt-5" action="step-2-usage.html" method="get">
+        <form class="card mt-5" action="step-2-usage.html" method="get" data-step="item">
           <fieldset class="fieldset">
             <legend class="legend">Item details</legend>
 
@@ -86,7 +86,7 @@
                   <span class="input-money">
                     <span class="input-money__symbol" aria-hidden="true">&#8377;</span>
                     <input class="input" type="number" id="item-price" name="price"
-                           min="0" step="1" inputmode="numeric" placeholder="18499"
+                           min="1" step="1" inputmode="numeric" placeholder="18499"
                            required aria-describedby="item-price-hint">
                   </span>
                   <span class="hint" id="item-price-hint">Total you would pay today,
@@ -194,8 +194,7 @@
           </dl>
         </div>
 
-        <p class="note mt-4">Nothing is saved yet. Evaluations are stored in MongoDB in
-          Phase 3, once accounts exist.</p>
+        <p class="note mt-4">Your draft is saved in this browser as you move between steps.</p>
       </aside>
 
     </div>
@@ -206,5 +205,6 @@
       <p>VETO</p>
     </div>
   </footer>
+  <script src="js/app.js" defer></script>
 </body>
 </html>
