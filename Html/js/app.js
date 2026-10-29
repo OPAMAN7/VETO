@@ -3,6 +3,8 @@
 
   var DRAFT_KEY = 'vetoDraft';
   var DECISIONS_KEY = 'vetoDecisions';
+  var COUNTDOWN_KEY = 'vetoVerdictCountdown';
+  var COOLING_OFF_MS = 48 * 60 * 60 * 1000;
   var DRAFT_FIELDS = [
     'name',
     'price',
@@ -339,6 +341,77 @@
     return savedDecision;
   }
 
+  function downloadDecisionHistory() {
+    var blob = new Blob([JSON.stringify({
+      exportedAt: new Date().toISOString(),
+      decisions: getDecisions()
+    }, null, 2)], { type: 'application/json' });
+    var downloadUrl = window.URL.createObjectURL(blob);
+    var downloadLink = document.createElement('a');
+
+    downloadLink.href = downloadUrl;
+    downloadLink.download = 'veto_decisions.json';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    window.setTimeout(function () {
+      window.URL.revokeObjectURL(downloadUrl);
+    }, 1000);
+  }
+
+  function initVerdictCountdown() {
+    var countdown = document.getElementById('verdict-countdown');
+    var markAsBought = document.getElementById('mark-as-bought');
+    if (!countdown || !markAsBought) {
+      return;
+    }
+
+    var draftSignature = JSON.stringify(getDraft());
+    var countdownState = readStorage(COUNTDOWN_KEY, null);
+    var deadline = countdownState && countdownState.draftSignature === draftSignature
+      ? Number(countdownState.deadline)
+      : 0;
+
+    if (!isFinite(deadline) || deadline <= 0) {
+      deadline = Date.now() + COOLING_OFF_MS;
+      writeStorage(COUNTDOWN_KEY, {
+        draftSignature: draftSignature,
+        deadline: deadline
+      });
+    }
+
+    var lockReason = document.getElementById('lock-reason');
+
+    function updateCountdown() {
+      var remaining = Math.max(0, deadline - Date.now());
+      var totalSeconds = Math.ceil(remaining / 1000);
+      var hours = Math.floor(totalSeconds / 3600);
+      var minutes = Math.floor((totalSeconds % 3600) / 60);
+      var seconds = totalSeconds % 60;
+
+      countdown.textContent = hours + ' h '
+        + (minutes < 10 ? '0' : '') + minutes + ' m '
+        + (seconds < 10 ? '0' : '') + seconds + ' s';
+      countdown.dateTime = 'PT' + hours + 'H' + minutes + 'M' + seconds + 'S';
+      markAsBought.disabled = remaining > 0;
+      markAsBought.setAttribute('aria-disabled', String(remaining > 0));
+
+      if (lockReason && remaining === 0) {
+        lockReason.textContent = 'The cooling-off period is complete. You can now mark this item as bought.';
+      }
+
+      return remaining > 0;
+    }
+
+    if (updateCountdown()) {
+      var intervalId = window.setInterval(function () {
+        if (!updateCountdown()) {
+          window.clearInterval(intervalId);
+        }
+      }, 1000);
+    }
+  }
+
   function formDraft(form) {
     var draft = getDraft();
     var formData = new FormData(form);
@@ -449,6 +522,7 @@
     syncNavigationState();
     initStepRouting();
     initHistory();
+    initVerdictCountdown();
 
     var stepForm = document.querySelector('[data-step]');
     var itemForm = document.querySelector("form[data-step='item']");
@@ -562,6 +636,7 @@
           outcome: submitter ? submitter.value : '',
           draft: getDraft()
         });
+        downloadDecisionHistory();
       });
     }
   }
@@ -570,6 +645,8 @@
   window.saveDraft = saveDraft;
   window.getDecisions = getDecisions;
   window.saveDecision = saveDecision;
+  window.downloadDecisionHistory = downloadDecisionHistory;
+  window.initVerdictCountdown = initVerdictCountdown;
   window.calculateCostPerUse = calculateCostPerUse;
   window.calculateImpulseScore = calculateImpulseScore;
   window.updateSidebarBill = updateSidebarBill;
@@ -580,6 +657,8 @@
     saveDraft: saveDraft,
     getDecisions: getDecisions,
     saveDecision: saveDecision,
+    downloadDecisionHistory: downloadDecisionHistory,
+    initVerdictCountdown: initVerdictCountdown,
     calculateCostPerUse: calculateCostPerUse,
     calculateImpulseScore: calculateImpulseScore,
     updateSidebarBill: updateSidebarBill,

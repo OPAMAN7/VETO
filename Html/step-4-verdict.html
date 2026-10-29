@@ -169,17 +169,18 @@
               own.</p>
             <p class="mt-4">
               <span class="strong">Unlocks in </span>
-              <time class="figure-tight" datetime="PT47H12M">47 h 12 m</time>
+              <time class="figure-tight" id="verdict-countdown" datetime="PT48H">48 h 00 m 00 s</time>
             </p>
             <p class="mt-4">
-              <button class="btn btn--primary" type="button" aria-disabled="true"
-                      aria-describedby="lock-reason">Mark as bought</button>
+              <button class="btn btn--primary" id="mark-as-bought" type="submit"
+                      form="decision-form" name="outcome" value="bought" disabled
+                      aria-disabled="true" aria-describedby="lock-reason">Mark as bought</button>
             </p>
             <p class="hint" id="lock-reason">Available once the 48 hour cooling-off period
               ends. The countdown starts when the verdict is saved.</p>
           </div>
 
-          <form class="card" action="history.html" method="get" data-decision>
+          <form class="card" id="decision-form" action="history.html" method="get" data-decision>
             <fieldset class="fieldset">
               <legend class="legend">Record what you did</legend>
               <div class="btn-row mt-4">
