@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Step 4 of 4: your verdict - VETO</title>
-  <meta name="description" content="The  VETOverdict: cost per use, impulse score, the duplicate that was found, and a 48 hour cooling-off lock.">
+  <meta name="description" content="The VETO verdict: cost per use, impulse score, optional cooling-off guidance, and category-specific shopping links.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -134,22 +134,19 @@
           </div>
 
           <div class="card">
-            <h2 class="sub-title">Buying is locked</h2>
-            <p class="muted mt-3">The lock is based on this decision's 48-hour cooling-off
-              period. It lifts automatically when the countdown completes.</p>
-            <p class="mt-4">
-              <span class="strong">Unlocks in </span>
-              <time class="figure-tight" id="verdict-countdown" datetime="PT48H">48 h 00 m 00 s</time>
-            </p>
+            <h2 class="sub-title">The 48-hour pause is optional</h2>
+            <p class="muted mt-3">A pause can help with an impulse purchase, but VETO will
+              not prevent you from buying now. Compare current listings below.</p>
+            <p class="hint mt-4">If you choose “I am waiting,” VETO starts the 48-hour reminder when you save that decision.</p>
             <p class="mt-4">
               <button class="btn btn--primary" id="mark-as-bought" type="submit"
-                      form="decision-form" name="outcome" value="bought" disabled
-                      aria-disabled="true" aria-describedby="lock-reason">Mark as bought</button>
+                      form="decision-form" name="outcome" value="bought"
+                      aria-describedby="purchase-choice-hint">I bought it</button>
             </p>
-            <p class="hint" id="lock-reason">Available once the 48 hour cooling-off period
-              ends. The countdown starts when the verdict is saved.</p>
+            <p class="hint" id="purchase-choice-hint">Already decided? Record the purchase at any time; VETO will not block you.</p>
             <button class="btn btn--secondary mt-4" type="button" id="enable-reminders">Enable browser reminders</button>
             <p class="hint mt-3" id="reminder-status" role="status" aria-live="polite"></p>
+            <p class="hint mt-3">Enable reminders here and allow browser notifications. Keep VETO running to deliver them: waiting schedules a 48-hour check; buying schedules a usage check in 30 days.</p>
           </div>
 
           <form class="card" id="decision-form" action="history.html" method="get" data-decision>
@@ -163,11 +160,17 @@
                   I am waiting
                 </button>
               </div>
-              <p class="hint">In 30 days you will be asked how often you actually used it,
-                which turns into your accuracy rating.</p>
+              <p class="hint">Waiting schedules a cooling-off reminder. Buying schedules a usage check; skipping schedules no purchase follow-up.</p>
               <p class="error-text mt-4" id="decision-save-status" role="status" aria-live="polite" hidden></p>
             </fieldset>
           </form>
+
+          <div class="card">
+            <h2 class="sub-title">Ready to buy now?</h2>
+            <p class="muted mt-3">Compare current search results for <span data-shopping-item>your item</span>. These are category-relevant stores, not a claim that any listing is the cheapest.</p>
+            <div class="btn-row mt-4" data-shopping-links role="group" aria-label="Search this item at stores"></div>
+            <p class="hint mt-3" data-shopping-guidance>Compare the delivered price, seller and return terms before deciding.</p>
+          </div>
 
           <div class="card" data-coach>
             <h2 class="sub-title">Purchase Coach</h2>

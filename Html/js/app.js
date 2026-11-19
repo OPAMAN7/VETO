@@ -3,7 +3,6 @@
 
   var DRAFT_KEY = 'vetoDraft';
   var DECISIONS_KEY = 'vetoDecisions';
-  var COUNTDOWN_KEY = 'vetoVerdictCountdown';
   var COOLING_OFF_MS = 48 * 60 * 60 * 1000;
   var DRAFT_FIELDS = [
     'name',
@@ -39,9 +38,107 @@
     { minimum: 5000, points: 20 },
     { minimum: 2500, points: 10 }
   ];
+  var SHOPPING_SOURCES = {
+    electronics: [
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q='],
+      ['Croma', 'https://www.croma.com/searchB?q=']
+    ],
+    kitchen: [
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q='],
+      ['Croma', 'https://www.croma.com/searchB?q=']
+    ],
+    'fast-fashion': [
+      ['Myntra', 'https://www.myntra.com/'],
+      ['AJIO', 'https://www.ajio.com/search/?text='],
+      ['Amazon India', 'https://www.amazon.in/s?k=']
+    ],
+    footwear: [
+      ['Myntra', 'https://www.myntra.com/'],
+      ['AJIO', 'https://www.ajio.com/search/?text='],
+      ['Amazon India', 'https://www.amazon.in/s?k=']
+    ],
+    fitness: [
+      ['Decathlon India', 'https://www.decathlon.in/search?query='],
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q=']
+    ],
+    furniture: [
+      ['IKEA India', 'https://www.ikea.com/in/en/search/?q='],
+      ['Pepperfry', 'https://www.pepperfry.com/site_product/search?q='],
+      ['Amazon India', 'https://www.amazon.in/s?k=']
+    ],
+    hobby: [
+      ['Itsy Bitsy', 'https://itsybitsy.in/search?q='],
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q=']
+    ],
+    books: [
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q='],
+      ['Crossword', 'https://www.crossword.in/search?q=']
+    ],
+    other: [
+      ['Amazon India', 'https://www.amazon.in/s?k='],
+      ['Flipkart', 'https://www.flipkart.com/search?q='],
+      ['Tata CLiQ', 'https://www.tatacliq.com/search/?searchCategory=all&text=']
+    ]
+  };
+  var CATEGORY_PURCHASE_TIPS = {
+    electronics: 'Check warranty length, repairability, seller rating and whether the model is new or refurbished.',
+    kitchen: 'Check power use, counter space, cleaning effort and whether the appliance is safe for your cooking routine.',
+    'fast-fashion': 'Check the size guide, fabric care, return window and whether it works with clothes you already own.',
+    footwear: 'Check fit and return terms, plus whether the shoe suits the surface and activity you named.',
+    fitness: 'Check setup space, safe-use guidance, delivery cost and whether a trial or rental is available.',
+    furniture: 'Measure the room and delivery path; check assembly, delivery fees and return conditions.',
+    hobby: 'Check that the kit includes the tools and materials you need, and compare it with a smaller starter set.',
+    books: 'Check the edition, format, delivery cost and whether a library or legal digital copy is available.',
+    other: 'Compare the full delivered price, seller reputation, warranty and return policy.'
+  };
 
   function calculateCostPerUse(price, usesPerMonth, lifespanMonths) {
     return Math.round(price / (usesPerMonth * lifespanMonths));
+  }
+
+  function getExclusiveOwnedSelection(selectedValues, changedValue, isChecked) {
+    var values = Array.isArray(selectedValues)
+      ? selectedValues.filter(function (value, index, list) {
+        return typeof value === 'string' && value !== '' && list.indexOf(value) === index;
+      })
+      : [];
+    if (changedValue === 'none' && isChecked) return ['none'];
+    if (changedValue !== 'none' && isChecked) {
+      return values.filter(function (value) { return value !== 'none'; });
+    }
+    if (values.indexOf('none') !== -1) return ['none'];
+    return values.filter(function (value) { return value !== 'none'; });
+  }
+
+  function getShoppingLinks(draft) {
+    var source = draft && typeof draft === 'object' ? draft : {};
+    var query = typeof source.name === 'string' ? source.name.trim() : '';
+    if (!query) return [];
+    var shops = SHOPPING_SOURCES[source.category] || SHOPPING_SOURCES.other;
+    return shops.map(function (shop) {
+      return {
+        name: shop[0],
+        url: shop[1] + encodeURIComponent(query)
+      };
+    });
+  }
+
+  function getPurchaseTip(draft, score, hasDuplicate) {
+    var categoryTip = CATEGORY_PURCHASE_TIPS[draft.category] || CATEGORY_PURCHASE_TIPS.other;
+    if (hasDuplicate) {
+      return 'You marked a route that may already meet this need. Try it first if it is safe and practical; ' +
+        categoryTip + ' VETO’s 48-hour pause is optional.';
+    }
+    if (score >= 75) {
+      return 'Your answers show higher purchase risk. Compare the full delivered price and return terms before deciding. ' +
+        categoryTip + ' Buying now is still your choice.';
+    }
+    return categoryTip + ' Compare at least two listings; VETO does not verify live prices or endorse a seller.';
   }
 
   function calculateImpulseScore(draft) {
@@ -463,15 +560,6 @@
     });
   }
 
-  function initVerdictCountdown() {
-    var countdown = document.getElementById('verdict-countdown');
-    var markAsBought = document.getElementById('mark-as-bought');
-    if (!countdown || !markAsBought) {
-      return;
-    }
-    continueVerdictCountdown(countdown, markAsBought);
-  }
-
   function initHistoryAnalytics() {
       var values = document.querySelectorAll('[data-analytics]');
       if (values.length === 0) return;
@@ -635,20 +723,27 @@
 
   function scheduleDecisionReminders(savedDecision) {
       if (!savedDecision || !savedDecision.id) return Promise.resolve();
-      var reminders = [{
-        decisionId: savedDecision.id,
-        type: 'cooling-off',
-        dueAt: new Date(Date.now() + COOLING_OFF_MS).toISOString(),
-        message: 'The 48-hour cooling-off period for ' + (savedDecision.draft.name || 'your purchase') + ' has ended.'
-      }, {
-        decisionId: savedDecision.id,
-        type: 'usage-audit',
-        dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        message: 'Review actual usage for ' + (savedDecision.draft.name || 'your purchase') + '.'
-      }];
+      var name = savedDecision.draft.name || 'your purchase';
+      var reminders = [];
+      if (savedDecision.outcome === 'delayed') {
+        reminders.push({
+          decisionId: savedDecision.id,
+          type: 'cooling-off',
+          dueAt: new Date(Date.now() + COOLING_OFF_MS).toISOString(),
+          message: 'Your optional 48-hour pause for ' + name + ' is over. Recheck the need and budget before deciding.'
+        });
+      }
+      if (savedDecision.outcome === 'bought') {
+        reminders.push({
+          decisionId: savedDecision.id,
+          type: 'usage-audit',
+          dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          message: 'How often have you used ' + name + '? Record the real number to improve your VETO estimates.'
+        });
+      }
 
       return reminders.reduce(function (chain, reminder) {
-        return chain.catch(function () {}).then(function () {
+        return chain.then(function () {
           return requestJson('/api/reminders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -659,13 +754,21 @@
     }
 
   function initReminderSupport() {
-      if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
       var button = document.getElementById('enable-reminders');
       var status = document.getElementById('reminder-status');
-      navigator.serviceWorker.register('/sw.js').catch(function (error) {
-        console.error('VETO could not register the reminder service worker.', error);
-      });
       if (!button) return;
+      if (!('serviceWorker' in navigator) || !('Notification' in window) || !('PushManager' in window)) {
+        button.disabled = true;
+        if (status) status.textContent = 'This browser does not support Web Push reminders. Try a current browser on HTTPS or localhost.';
+        return;
+      }
+      var registrationError = null;
+      var registrationPromise = navigator.serviceWorker.register('/sw.js').catch(function (error) {
+        console.error('VETO could not register the reminder service worker.', error);
+        registrationError = error;
+        if (status) status.textContent = 'Could not set up browser reminders: ' + error.message;
+        return null;
+      });
       function urlBase64ToUint8Array(base64String) {
         var padding = '='.repeat((4 - base64String.length % 4) % 4);
         var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -677,23 +780,30 @@
         return output;
       }
       button.addEventListener('click', function () {
+        button.disabled = true;
         if (status) status.textContent = 'Checking Web Push configuration...';
-        Promise.all([
-          navigator.serviceWorker.ready,
-          requestJson('/api/push/public-key').catch(function () {
-            throw new Error('Web Push is not configured yet. VAPID keys are required.');
-          }),
-          window.Notification.requestPermission()
-        ]).then(function (values) {
-          var registration = values[0];
-          var publicKey = values[1].publicKey;
-          var permission = values[2];
-          if (permission !== 'granted') {
-            throw new Error('Browser notification permission was not granted.');
+        requestJson('/api/push/public-key').then(function (data) {
+          if (window.Notification.permission === 'denied') {
+            throw new Error('Notifications are blocked in browser settings. Allow them for VETO, then try again.');
           }
-          return registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          var permissionPromise = window.Notification.permission === 'granted'
+            ? Promise.resolve('granted')
+            : window.Notification.requestPermission();
+          return permissionPromise.then(function (permission) {
+            if (permission !== 'granted') {
+              throw new Error('Browser notification permission was not granted.');
+            }
+            return registrationPromise;
+          }).then(function (registration) {
+            if (!registration) {
+              throw new Error('Browser reminder setup failed: ' + (registrationError ? registrationError.message : 'service worker unavailable.'));
+            }
+            return registration.pushManager.getSubscription().then(function (existingSubscription) {
+              return existingSubscription || registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+              });
+            });
           }).then(function (subscription) {
             return requestJson('/api/push/subscribe', {
               method: 'POST',
@@ -702,15 +812,17 @@
             });
           });
         }).then(function () {
-          if (status) status.textContent = 'Browser reminders enabled.';
+          button.textContent = 'Browser reminders enabled';
+          if (status) status.textContent = 'This browser is subscribed. VETO will send relevant reminders after you save a wait or purchase; keep the VETO server running.';
         }).catch(function (error) {
+          button.disabled = false;
           if (status) status.textContent = error.message;
         });
       });
     }
 
   function initVerdictSummary() {
-      if (!document.getElementById('verdict-countdown')) return;
+      if (!document.querySelector('[data-verdict-title]')) return;
       var draft = getDraft();
       var title = document.querySelector('main .page-title');
       var lead = title ? title.nextElementSibling : null;
@@ -755,6 +867,26 @@
         alternativeText.textContent = draft.altName && Number(draft.altPrice) > 0
           ? draft.altName + ' is listed at ' + formatRupees(Number(draft.altPrice)) + '.'
           : 'No alternative name and positive price were entered.';
+      }
+
+      var shoppingLinks = document.querySelector('[data-shopping-links]');
+      var shoppingGuidance = document.querySelector('[data-shopping-guidance]');
+      var shoppingItem = document.querySelector('[data-shopping-item]');
+      if (shoppingItem) shoppingItem.textContent = draft.name || 'this item';
+      if (shoppingLinks) {
+        shoppingLinks.textContent = '';
+        getShoppingLinks(draft).forEach(function (shop) {
+          var link = document.createElement('a');
+          link.className = 'btn btn--secondary';
+          link.href = shop.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = 'Search ' + shop.name;
+          shoppingLinks.appendChild(link);
+        });
+      }
+      if (shoppingGuidance) {
+        shoppingGuidance.textContent = getPurchaseTip(draft, score, hasDuplicate);
       }
 
       var scoreCaption = document.querySelector('[data-score-caption]');
@@ -815,53 +947,6 @@
       if (comparisonOwned) comparisonOwned.textContent =
         hasDuplicate ? ownedItems.filter(function (item) { return item !== 'none'; }).join(', ') : 'None selected';
     }
-
-  function continueVerdictCountdown(countdown, markAsBought) {
-    var draftSignature = JSON.stringify(getDraft());
-    var countdownState = readStorage(COUNTDOWN_KEY, null);
-    var deadline = countdownState && countdownState.draftSignature === draftSignature
-      ? Number(countdownState.deadline)
-      : 0;
-
-    if (!isFinite(deadline) || deadline <= 0) {
-      deadline = Date.now() + COOLING_OFF_MS;
-      writeStorage(COUNTDOWN_KEY, {
-        draftSignature: draftSignature,
-        deadline: deadline
-      });
-    }
-
-    var lockReason = document.getElementById('lock-reason');
-
-    function updateCountdown() {
-      var remaining = Math.max(0, deadline - Date.now());
-      var totalSeconds = Math.ceil(remaining / 1000);
-      var hours = Math.floor(totalSeconds / 3600);
-      var minutes = Math.floor((totalSeconds % 3600) / 60);
-      var seconds = totalSeconds % 60;
-
-      countdown.textContent = hours + ' h '
-        + (minutes < 10 ? '0' : '') + minutes + ' m '
-        + (seconds < 10 ? '0' : '') + seconds + ' s';
-      countdown.dateTime = 'PT' + hours + 'H' + minutes + 'M' + seconds + 'S';
-      markAsBought.disabled = remaining > 0;
-      markAsBought.setAttribute('aria-disabled', String(remaining > 0));
-
-      if (lockReason && remaining === 0) {
-        lockReason.textContent = 'The cooling-off period is complete. You can now mark this item as bought.';
-      }
-
-      return remaining > 0;
-    }
-
-    if (updateCountdown()) {
-      var intervalId = window.setInterval(function () {
-        if (!updateCountdown()) {
-          window.clearInterval(intervalId);
-        }
-      }, 1000);
-    }
-  }
 
   function formDraft(form) {
     var draft = getDraft();
@@ -997,7 +1082,6 @@
     initPurchaseCoach();
     initReminderSupport();
     initVerdictSummary();
-    initVerdictCountdown();
 
     var stepForm = document.querySelector('[data-step]');
     var itemForm = document.querySelector("form[data-step='item']");
@@ -1005,6 +1089,39 @@
     var redundancyForm = document.querySelector("form[data-step='redundancy']");
     if (stepForm) {
       restoreForm(stepForm);
+      if (redundancyForm) {
+        var ownedContainer = redundancyForm.querySelector('[data-redundancy-options]');
+        if (ownedContainer) {
+          function syncOwnedChoices(changedInput) {
+            var inputs = ownedContainer.querySelectorAll('input[name="owned"]');
+            var checkedValues = Array.prototype.map.call(inputs, function (input) {
+              return input.checked ? input.value : null;
+            }).filter(Boolean);
+            var selected = getExclusiveOwnedSelection(
+              checkedValues,
+              changedInput ? changedInput.value : null,
+              changedInput ? changedInput.checked : false
+            );
+            var hasNone = selected.indexOf('none') !== -1;
+            var hasAlternatives = selected.length > 0 && !hasNone;
+
+            Array.prototype.forEach.call(inputs, function (input) {
+              input.checked = selected.indexOf(input.value) !== -1;
+              input.disabled = input.value === 'none' ? hasAlternatives : hasNone;
+              var label = input.closest('label');
+              if (label) label.classList.toggle('choice--disabled', input.disabled);
+            });
+          }
+
+          syncOwnedChoices(null);
+          formDraft(redundancyForm);
+          ownedContainer.addEventListener('change', function (event) {
+            if (!event.target || event.target.name !== 'owned') return;
+            syncOwnedChoices(event.target);
+            formDraft(redundancyForm);
+          });
+        }
+      }
       stepForm.addEventListener('input', function () {
         updateSidebarBill(formDraft(stepForm));
       });
@@ -1103,7 +1220,7 @@
       var title = document.querySelector('[data-redundancy-title]');
       var hint = document.querySelector('[data-redundancy-hint]');
       if (title) title.textContent = survey.redundancyTitle;
-      if (hint) hint.textContent = 'Select any lower-friction route that really covers the same need.';
+      if (hint) hint.textContent = 'Select every useful route, or choose “Nothing here covers the need.” These choices cannot be combined.';
 
       container.textContent = '';
       survey.redundancyOptions.forEach(function (option) {
@@ -1348,7 +1465,6 @@
   window.saveDraft = saveDraft;
   window.getDecisions = getDecisions;
   window.saveDecision = saveDecision;
-  window.initVerdictCountdown = initVerdictCountdown;
   window.calculateCostPerUse = calculateCostPerUse;
   window.calculateImpulseScore = calculateImpulseScore;
   window.updateSidebarBill = updateSidebarBill;
@@ -1359,7 +1475,8 @@
     saveDraft: saveDraft,
     getDecisions: getDecisions,
     saveDecision: saveDecision,
-    initVerdictCountdown: initVerdictCountdown,
+    getExclusiveOwnedSelection: getExclusiveOwnedSelection,
+    getShoppingLinks: getShoppingLinks,
     calculateCostPerUse: calculateCostPerUse,
     calculateImpulseScore: calculateImpulseScore,
     updateSidebarBill: updateSidebarBill,

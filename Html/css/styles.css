@@ -545,6 +545,9 @@ ul, ol { list-style: none; }
 
 .choice input { margin-top: 0.35rem; accent-color: var(--stamp); flex: none; }
 
+.choice--disabled { opacity: 0.62; cursor: not-allowed; }
+.choice--disabled:hover { border-color: var(--field); }
+
 .choice:has(input:checked) {
   border-color: var(--stamp);
   border-width: 2px;

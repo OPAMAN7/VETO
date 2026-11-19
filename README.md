@@ -1,13 +1,18 @@
 # VETO — The Anti-Impulse Purchase Engine
 
-VETO helps people pause before a purchase. It calculates cost per use, records likely
-usage and existing alternatives, calculates a transparent impulse score, and gives the
-browser a 48-hour cooling-off period. It does not purchase or sell anything.
+VETO helps people make a more deliberate purchase. It calculates cost per use, records
+likely usage and existing alternatives, and calculates a transparent impulse score.
+It suggests an optional 48-hour pause but never blocks an immediate purchase. It does
+not purchase or sell anything.
 
 ## What is included
 
 - A four-step purchase evaluation for item details, usage, redundancy and verdict.
+- Mutually exclusive redundancy choices so “nothing covers the need” cannot conflict
+  with selected alternatives.
 - Cost-per-use and impulse-score calculations shown to the user.
+- Category-specific store searches and buying checklists; these links do not claim to
+  verify live prices or recommend the cheapest seller.
 - Saved decisions with bought, delayed and passed outcomes.
 - SQLite as the safe local default.
 - Optional JSON and MongoDB storage adapters.
@@ -174,9 +179,11 @@ VAPID_SUBJECT=mailto:you@example.com
 ```
 
 The backend stores reminder schedules and subscriptions. The scheduler only sends
-reminders while the server is running and only when VAPID keys are configured. Browser
-notifications can work while VETO is open; Web Push behavior is limited by OS/browser
-notification settings.
+reminders while the server is running and only when VAPID keys are configured. On the
+verdict page, choose **Enable browser reminders** and grant permission on each browser
+or device you want to notify. Saving “I am waiting” schedules a reminder after 48
+hours; saving “I bought it” schedules a usage check after 30 days; skipping does not
+schedule a purchase follow-up. Delivery also depends on OS notification settings.
 
 ## Tests
 

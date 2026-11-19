@@ -67,14 +67,15 @@
 
         <div class="callout callout--stop mt-5">
           <p class="callout__title">Check items you really own</p>
-          <p>Choose only products that can cover the same need. Select “Nothing here
-            does the job” if no useful alternative is available.</p>
+          <p>Choose only routes that can cover the same need. Selecting “Nothing here
+            covers the need” clears and disables the other choices; selecting a route
+            disables that option until you clear every route.</p>
         </div>
 
         <form class="card mt-5" action="step-4-verdict.html" method="get" data-step="redundancy" novalidate>
           <fieldset class="fieldset">
             <legend class="legend" data-redundancy-title>What you already own</legend>
-            <p class="hint" id="own-hint" data-redundancy-hint>Choose any option that covers the same need.</p>
+            <p class="hint" id="own-hint" data-redundancy-hint>Choose every useful route, or choose “Nothing here covers the need.” These choices cannot be combined.</p>
             <div class="choice-list mt-4" role="group" aria-describedby="own-hint" data-redundancy-options>
               <label class="choice">
                 <input type="checkbox" name="owned" value="none">
