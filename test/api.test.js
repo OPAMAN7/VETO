@@ -1,0 +1,92 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { createServer } = require('../server');
+
+function createMemoryStore() {
+  const records = new Map();
+  return {
+    kind: 'memory-test',
+    async list() { return Array.from(records.values()); },
+    async getById(id) { return records.get(id) || null; },
+    async create(decision) {
+      if (records.has(decision.id)) {
+        const error = new Error('Duplicate ID');
+        error.statusCode = 409;
+        throw error;
+      }
+      records.set(decision.id, decision);
+      return decision;
+    },
+    async update(id, decision) {
+      if (!records.has(id)) return null;
+      records.set(id, decision);
+      return decision;
+    },
+    async delete(id) { return records.delete(id); },
+    async close() {}
+  };
+}
+
+test('decision API exposes full CRUD while keeping collection response compatible', async (t) => {
+  const server = createServer({ store: createMemoryStore() });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  const healthResponse = await fetch(`${baseUrl}/api/health`);
+  assert.equal(healthResponse.status, 200);
+  assert.equal((await healthResponse.json()).storage, 'memory-test');
+
+  const emptyResponse = await fetch(`${baseUrl}/api/decisions`);
+  assert.deepEqual(await emptyResponse.json(), { decisions: [] });
+
+  const payload = {
+    id: 'api-test-1',
+    outcome: 'delayed',
+    draft: { name: 'Headphones', price: '3000', owned: ['none'], honesty: [] }
+  };
+  const createResponse = await fetch(`${baseUrl}/api/decisions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  assert.equal(createResponse.status, 201);
+  const created = (await createResponse.json()).decision;
+  assert.equal(created.id, 'api-test-1');
+  assert.equal(created.outcome, 'delayed');
+
+  const getResponse = await fetch(`${baseUrl}/api/decisions/api-test-1`);
+  assert.equal((await getResponse.json()).decision.id, 'api-test-1');
+
+  const updateResponse = await fetch(`${baseUrl}/api/decisions/api-test-1`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ outcome: 'passed' })
+  });
+  assert.equal(updateResponse.status, 200);
+  assert.equal((await updateResponse.json()).decision.outcome, 'passed');
+
+  const deleteResponse = await fetch(`${baseUrl}/api/decisions/api-test-1`, { method: 'DELETE' });
+  assert.equal(deleteResponse.status, 204);
+
+  const missingResponse = await fetch(`${baseUrl}/api/decisions/api-test-1`);
+  assert.equal(missingResponse.status, 404);
+});
+
+test('decision API validates new records', async (t) => {
+  const server = createServer({ store: createMemoryStore() });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  const response = await fetch(`${baseUrl}/api/decisions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ outcome: 'maybe', draft: {} })
+  });
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /Outcome must be/);
+});

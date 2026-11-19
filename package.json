@@ -1,12 +1,17 @@
 {
   "name": "veto",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "VETO local purchase decision tracker",
+  "description": "VETO anti-impulse purchase decision tracker",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22.13"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "mongoose": "^9.12.2"
   }
 }
