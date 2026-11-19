@@ -59,20 +59,20 @@
           </dl>
         </div>
 
-        <figure class="receipt">
+        <figure class="receipt" data-home-summary>
           <figcaption class="receipt__head">
-            <span>Worked example</span>
-            <span>Espresso machine</span>
+            <span>Latest saved check</span>
+            <span data-home-name>No saved item</span>
           </figcaption>
-          <div class="receipt__line"><span>Listed price</span><span class="strong">&#8377;18,499</span></div>
-          <div class="receipt__line"><span>Honest frequency</span><span class="strong">2 a month</span></div>
-          <div class="receipt__line"><span>Realistic lifespan</span><span class="strong">24 months</span></div>
-          <div class="receipt__line"><span>Total uses</span><span class="strong">48</span></div>
+          <div class="receipt__line"><span>Listed price</span><span class="strong" data-home-price>-</span></div>
+          <div class="receipt__line"><span>Usage</span><span class="strong" data-home-usage>-</span></div>
+          <div class="receipt__line"><span>Realistic lifespan</span><span class="strong" data-home-lifespan>-</span></div>
+          <div class="receipt__line"><span>Total uses</span><span class="strong" data-home-total>-</span></div>
           <div class="receipt__line receipt__total">
             <span class="strong">Cost per use</span>
-            <span class="figure-tight">&#8377;385</span>
+            <span class="figure-tight" data-home-cost>-</span>
           </div>
-          <p class="mt-3"><span class="pill pill--wait">Wait 48 hours</span></p>
+          <p class="mt-3"><span class="pill pill--wait" data-home-status>Start a check</span></p>
         </figure>
       </section>
 
@@ -140,8 +140,8 @@
               </div>
               <div class="band">
                 <span>75 to 89</span>
-                <div class="meter" role="img" aria-label="Wait band, shown at 88 out of 100">
-                  <div class="meter__fill" style="width: 88%"></div>
+                <div class="meter" role="img" aria-label="Impulse score wait band">
+                  <div class="meter__fill" style="width: 75%"></div>
                 </div>
               </div>
               <div class="band">

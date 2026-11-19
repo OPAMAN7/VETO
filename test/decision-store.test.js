@@ -34,6 +34,33 @@ test('validateDecision rejects an unsupported outcome', () => {
   );
 });
 
+test('validateDecision preserves category-specific answers', () => {
+  const decision = sampleDecision({
+    id: 'category-survey',
+    draft: {
+      name: 'Kitchen appliance',
+      price: '5000',
+      category: 'kitchen',
+      trigger: 'planned',
+      usesPerMonth: '20',
+      lifespanMonths: '24',
+      honesty: ['cleaning'],
+      owned: ['manual'],
+      access: 'buy-only',
+      altName: '',
+      altPrice: '',
+      categoryAnswers: {
+        needLevel: 'novel',
+        mealFrequency: 'rare',
+        manualAlternative: 'easy',
+        honesty: ['counterSpace']
+      }
+    }
+  });
+  assert.deepEqual(decision.draft.categoryAnswers.needLevel, 'novel');
+  assert.deepEqual(decision.draft.categoryAnswers.manualAlternative, 'easy');
+});
+
 test('reminder validation rejects invalid schedules', () => {
   const { validateReminder, StoreError } = require('../stores/decision-store');
   assert.throws(

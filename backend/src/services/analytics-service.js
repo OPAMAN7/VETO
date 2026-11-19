@@ -13,6 +13,9 @@ function getImpulseScore(draft) {
   const owned = Array.isArray(draft.owned)
     ? draft.owned
     : draft.owned ? [draft.owned] : [];
+  const categoryAnswers = draft.categoryAnswers && typeof draft.categoryAnswers === 'object'
+    ? draft.categoryAnswers
+    : {};
   const price = Number(draft.price);
   let score = 0;
 
@@ -22,7 +25,40 @@ function getImpulseScore(draft) {
   if (owned.some((item) => item !== 'none')) score += 25;
   const threshold = PRICE_SCORE_THRESHOLDS.find((item) => price >= item.minimum);
   if (threshold) score += threshold.points;
-  return Math.min(100, score);
+  const category = draft.category;
+
+  if (category === 'kitchen') {
+    if (categoryAnswers.needLevel === 'novel') score += 15;
+    else if (categoryAnswers.needLevel === 'helpful') score += 8;
+    if (categoryAnswers.manualAlternative === 'easy') score += 10;
+  } else if (category === 'hobby') {
+    if (categoryAnswers.commitment === 'idea') score += 20;
+    else if (categoryAnswers.commitment === 'starting') score += 10;
+    if (categoryAnswers.trial === 'available') score -= 5;
+  } else if (category === 'fast-fashion') {
+    if (categoryAnswers.wardrobeGap === 'want') score += 15;
+    else if (categoryAnswers.wardrobeGap === 'similar') score += 10;
+    if (categoryAnswers.saleTrigger === 'high') score += 10;
+  } else if (category === 'footwear') {
+    if (categoryAnswers.purpose === 'desire') score += 15;
+    if (categoryAnswers.fit === 'no') score += 10;
+  } else if (category === 'fitness') {
+    if (categoryAnswers.goal === 'desire') score += 15;
+    if (categoryAnswers.usedBefore === 'no') score += 10;
+  } else if (category === 'furniture') {
+    if (categoryAnswers.problem === 'style') score += 15;
+    if (categoryAnswers.existing === 'easy') score += 10;
+  } else if (category === 'electronics') {
+    if (categoryAnswers.replacementReason === 'want') score += 15;
+    if (categoryAnswers.repairable === 'yes') score += 10;
+  } else if (category === 'books') {
+    if (categoryAnswers.purpose === 'collection') score += 15;
+    if (categoryAnswers.access === 'free' || categoryAnswers.access === 'library') score -= 5;
+  } else if (category === 'other') {
+    if (categoryAnswers.need === 'desire') score += 15;
+    if (categoryAnswers.replacement === 'exists') score += 10;
+  }
+  return Math.max(0, Math.min(100, score));
 }
 
 function buildAnalytics(decisions) {

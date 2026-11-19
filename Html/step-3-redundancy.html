@@ -73,24 +73,9 @@
 
         <form class="card mt-5" action="step-4-verdict.html" method="get" data-step="redundancy" novalidate>
           <fieldset class="fieldset">
-            <legend class="legend">What you already own</legend>
-            <p class="hint" id="own-hint">Pulled from your past checks. Tick anything that
-              covers the same need.</p>
-            <div class="choice-list mt-4" role="group" aria-describedby="own-hint">
-              <label class="choice">
-                <input type="checkbox" name="owned" value="moka-pot">
-                <span class="choice__text">
-                  <span class="choice__title">Moka pot</span>
-                  <span class="choice__meta">Logged March 2026, used 14 times since</span>
-                </span>
-              </label>
-              <label class="choice">
-                <input type="checkbox" name="owned" value="french-press">
-                <span class="choice__text">
-                  <span class="choice__title">French press</span>
-                  <span class="choice__meta">Logged November 2025, used 3 times since</span>
-                </span>
-              </label>
+            <legend class="legend" data-redundancy-title>What you already own</legend>
+            <p class="hint" id="own-hint" data-redundancy-hint>Choose any option that covers the same need.</p>
+            <div class="choice-list mt-4" role="group" aria-describedby="own-hint" data-redundancy-options>
               <label class="choice">
                 <input type="checkbox" name="owned" value="none">
                 <span class="choice__text">
@@ -137,7 +122,7 @@
               <p class="field">
                 <label class="label" for="alt-name">What it is</label>
                 <input class="input" type="text" id="alt-name" name="altName"
-                       placeholder="Refurbished, one model older" autocomplete="off"
+                       placeholder="Alternative name" autocomplete="off"
                        aria-describedby="alt-name-hint">
                 <span class="hint" id="alt-name-hint">Optional. Included with this decision when you save it.</span>
               </p>
@@ -146,7 +131,7 @@
                 <span class="input-money">
                   <span class="input-money__symbol" aria-hidden="true">&#8377;</span>
                   <input class="input" type="number" id="alt-price" name="altPrice"
-                         min="0" step="1" inputmode="numeric" placeholder="7900"
+                         min="0" step="1" inputmode="numeric"                          placeholder="Alternative price"
                          aria-describedby="alt-price-hint">
                 </span>
                 <span class="hint" id="alt-price-hint">Used to show the gap between what
@@ -170,33 +155,33 @@
           <div class="bill__sum">
             <p class="bill__numerator">
               <span>Price</span>
-              <span data-field="price">&#8377;18,499</span>
+              <span data-field="price">-</span>
             </p>
             <hr class="bill__rule">
             <p class="bill__denominator">
               <span>Total uses</span>
-              <span data-field="uses">48</span>
+              <span data-field="uses">-</span>
             </p>
           </div>
 
           <div class="bill__quotient live-region" aria-live="polite" aria-atomic="true">
-            <strong class="bill__figure" data-field="cost-per-use">&#8377;385</strong>
+            <strong class="bill__figure" data-field="cost-per-use">-</strong>
             <span class="bill__unit">per use, before the duplicate is counted</span>
           </div>
 
           <dl class="bill__breakdown">
-            <div><dt>Duplicate on your shelf</dt><dd>moka pot</dd></div>
-            <div><dt>Cheaper option you found</dt><dd>refurbished, &#8377;7,900</dd></div>
-            <div><dt>Impulse score</dt><dd data-field="impulse">88 of 100</dd></div>
+            <div><dt>Duplicate on your shelf</dt><dd data-field="owned">not set</dd></div>
+            <div><dt>Cheaper option you found</dt><dd data-field="alternative">not set</dd></div>
+            <div><dt>Impulse score</dt><dd data-field="impulse">not scored</dd></div>
           </dl>
 
           <div class="mt-4">
-            <div class="meter" role="img" aria-label="Impulse score 88 out of 100, inside the 75 to 89 wait band">
-              <div class="meter__fill" style="width: 88%"></div>
+            <div class="meter" role="img" aria-label="Impulse score not scored">
+                <div class="meter__fill" style="width: 0%"></div>
             </div>
           </div>
 
-          <p class="mt-4"><span class="pill pill--stop">Duplicate found</span></p>
+          <p class="mt-4"><span class="pill pill--wait" data-redundancy-status>Redundancy pending</span></p>
         </div>
 
         <p class="note mt-4">Your answers are saved in this browser as you move between steps.</p>
@@ -210,6 +195,7 @@
       <p>VETO</p>
     </div>
   </footer>
+  <script src="js/category-surveys.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>

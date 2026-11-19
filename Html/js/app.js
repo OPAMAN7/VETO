@@ -16,7 +16,8 @@
     'owned',
     'access',
     'altName',
-    'altPrice'
+    'altPrice',
+    'categoryAnswers'
   ];
   var DEFAULT_DRAFT = {
     name: '',
@@ -29,7 +30,8 @@
     owned: [],
     access: '',
     altName: '',
-    altPrice: ''
+    altPrice: '',
+    categoryAnswers: {}
   };
   var HONESTY_CHECK_COUNT = 3;
   var PRICE_SCORE_THRESHOLDS = [
@@ -73,7 +75,42 @@
       return false;
     });
 
-    return Math.min(100, score);
+    var categoryAnswers = source.categoryAnswers && typeof source.categoryAnswers === 'object'
+      ? source.categoryAnswers
+      : {};
+    if (source.category === 'kitchen') {
+      if (categoryAnswers.needLevel === 'novel') score += 15;
+      else if (categoryAnswers.needLevel === 'helpful') score += 8;
+      if (categoryAnswers.manualAlternative === 'easy') score += 10;
+    } else if (source.category === 'hobby') {
+      if (categoryAnswers.commitment === 'idea') score += 20;
+      else if (categoryAnswers.commitment === 'starting') score += 10;
+      if (categoryAnswers.trial === 'available') score -= 5;
+    } else if (source.category === 'fast-fashion') {
+      if (categoryAnswers.wardrobeGap === 'want') score += 15;
+      else if (categoryAnswers.wardrobeGap === 'similar') score += 10;
+      if (categoryAnswers.saleTrigger === 'high') score += 10;
+    } else if (source.category === 'footwear') {
+      if (categoryAnswers.purpose === 'desire') score += 15;
+      if (categoryAnswers.fit === 'no') score += 10;
+    } else if (source.category === 'fitness') {
+      if (categoryAnswers.goal === 'desire') score += 15;
+      if (categoryAnswers.usedBefore === 'no') score += 10;
+    } else if (source.category === 'furniture') {
+      if (categoryAnswers.problem === 'style') score += 15;
+      if (categoryAnswers.existing === 'easy') score += 10;
+    } else if (source.category === 'electronics') {
+      if (categoryAnswers.replacementReason === 'want') score += 15;
+      if (categoryAnswers.repairable === 'yes') score += 10;
+    } else if (source.category === 'books') {
+      if (categoryAnswers.purpose === 'collection') score += 15;
+      if (categoryAnswers.access === 'free' || categoryAnswers.access === 'library') score -= 5;
+    } else if (source.category === 'other') {
+      if (categoryAnswers.need === 'desire') score += 15;
+      if (categoryAnswers.replacement === 'exists') score += 10;
+    }
+
+    return Math.max(0, Math.min(100, score));
   }
 
   function formatRupees(amount) {
@@ -99,6 +136,10 @@
     var costPerUseValue = sidebar.querySelector("[data-field='cost-per-use']");
     var impulseValue = sidebar.querySelector("[data-field='impulse']");
     var meterFill = sidebar.querySelector('.meter__fill');
+    var ownedValue = sidebar.querySelector("[data-field='owned']");
+    var alternativeValue = sidebar.querySelector("[data-field='alternative']");
+    var factorsValue = sidebar.querySelector("[data-field='factors']");
+    var verdictPreview = sidebar.querySelector("[data-verdict-preview]");
 
     if (priceValue) {
       priceValue.textContent = formatRupees(isPriceValid ? price : 0);
@@ -122,6 +163,38 @@
           ? 'Impulse score not scored'
           : 'Impulse score ' + score + ' out of 100');
       }
+    }
+    if (ownedValue) {
+      var ownedItems = Array.isArray(source.owned) ? source.owned : [];
+      ownedValue.textContent = ownedItems.filter(function (item) { return item !== 'none'; }).join(', ') || 'none';
+    }
+    if (alternativeValue) {
+      alternativeValue.textContent = source.altName
+        ? source.altName + (Number(source.altPrice) > 0 ? ', ' + formatRupees(Number(source.altPrice)) : '')
+        : 'not set';
+    }
+    if (factorsValue) {
+      var answered = [source.trigger, isUsageValid, source.honesty.length > 0, Array.isArray(source.owned) && source.owned.length > 0, source.access].filter(Boolean).length;
+      factorsValue.textContent = answered + ' of 5';
+    }
+    if (verdictPreview) {
+      verdictPreview.textContent = score === null
+        ? 'Verdict pending'
+        : score >= 90 ? 'Skip recommended' : score >= 75 ? '48-hour wait' : 'Consider buying';
+    }
+    var redundancyStatus = sidebar.querySelector("[data-redundancy-status]");
+    if (redundancyStatus) {
+      var ownedItems = Array.isArray(source.owned) ? source.owned : [];
+      redundancyStatus.textContent = ownedItems.length === 0
+        ? 'Redundancy pending'
+        : ownedItems.indexOf('none') !== -1
+          ? 'No duplicate selected'
+          : 'Alternative route selected';
+      redundancyStatus.className = ownedItems.length === 0
+        ? 'pill pill--wait'
+        : ownedItems.indexOf('none') !== -1
+          ? 'pill pill--good'
+          : 'pill pill--stop';
     }
   }
 
@@ -283,7 +356,8 @@
       owned: [],
       access: DEFAULT_DRAFT.access,
       altName: DEFAULT_DRAFT.altName,
-      altPrice: DEFAULT_DRAFT.altPrice
+      altPrice: DEFAULT_DRAFT.altPrice,
+      categoryAnswers: {}
     };
   }
 
@@ -321,6 +395,11 @@
     normalized.owned = Array.isArray(normalized.owned)
       ? normalized.owned
       : normalized.owned ? [normalized.owned] : [];
+    normalized.categoryAnswers = normalized.categoryAnswers
+      && typeof normalized.categoryAnswers === 'object'
+      && !Array.isArray(normalized.categoryAnswers)
+      ? normalized.categoryAnswers
+      : {};
 
     return normalized;
   }
@@ -413,6 +492,37 @@
       }).catch(function (error) {
         console.error('VETO could not load analytics.', error);
       });
+      Promise.all([requestJson('/api/decisions'), requestJson('/api/analytics/summary')])
+        .then(function (responses) {
+          var decisions = responses[0].decisions || [];
+          var summary = responses[1];
+          var summaryText = document.querySelector('[data-history-summary]');
+          if (summaryText) {
+            summaryText.textContent = decisions.length === 0
+              ? 'No purchase checks are saved yet.'
+              : summary.totalDecisions + ' saved checks: ' + summary.purchases + ' purchased, '
+                + summary.delayed + ' waiting, and ' + summary.skipped + ' skipped.';
+          }
+          var auditCallout = document.querySelector('[data-audit-callout]');
+          if (auditCallout) {
+            var thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            var audits = decisions.filter(function (decision) {
+              var saved = Date.parse(decision.savedAt);
+              return (decision.outcome === 'bought' || decision.outcome === 'delayed')
+                && isFinite(saved) && saved <= thirtyDaysAgo;
+            });
+            if (audits.length > 0) {
+              auditCallout.querySelector('.callout__title').textContent =
+                audits.length + (audits.length === 1 ? ' usage audit is due' : ' usage audits are due');
+              auditCallout.querySelector('p:nth-of-type(2)').textContent =
+                audits.map(function (decision) {
+                  return decision.draft.name || 'Unnamed item';
+                }).join(', ') + ' has reached the 30-day follow-up period.';
+            }
+          }
+        }).catch(function (error) {
+          console.error('VETO could not load history details.', error);
+        });
     }
 
   function initAlternatives() {
@@ -611,12 +721,99 @@
       var totalUses = usesPerMonth * lifespanMonths;
       var score = calculateImpulseScore(draft);
       var decision = score >= 90 ? 'skip it' : score >= 75 ? 'wait 48 hours' : 'consider buying';
-      if (title) title.textContent = name + ': ' + decision;
-      if (lead) {
+      var titleElement = document.querySelector('[data-verdict-title]');
+      var summaryElement = document.querySelector('[data-verdict-summary]');
+      if (titleElement) titleElement.textContent = name + ': ' + decision;
+      if (summaryElement) {
         lead.textContent = totalUses > 0
           ? name + ' has an estimated cost per use of ' + formatRupees(calculateCostPerUse(price, usesPerMonth, lifespanMonths)) + ' and an impulse score of ' + score + ' out of 100.'
           : name + ' has an impulse score of ' + score + ' out of 100.';
+        summaryElement.textContent = lead.textContent;
       }
+      if (title) title.textContent = name + ': ' + decision;
+      if (lead && !summaryElement) lead.textContent =
+        name + ' has an impulse score of ' + score + ' out of 100.';
+
+      var duplicateText = document.querySelector('[data-verdict-duplicate-text]');
+      var ownedItems = Array.isArray(draft.owned) ? draft.owned : [];
+      var hasDuplicate = ownedItems.some(function (item) { return item !== 'none'; });
+      if (duplicateText) {
+        duplicateText.textContent = hasDuplicate
+          ? 'A similar item was selected as already owned: ' + ownedItems.filter(function (item) { return item !== 'none'; }).join(', ') + '.'
+          : 'No duplicate was selected.';
+      }
+
+      var costText = document.querySelector('[data-verdict-cost-text]');
+      if (costText) {
+        costText.textContent = totalUses > 0
+          ? formatRupees(calculateCostPerUse(price, usesPerMonth, lifespanMonths)) + ' per use across ' + totalUses + ' estimated uses.'
+          : 'Complete item and usage details to calculate cost per use.';
+      }
+
+      var alternativeText = document.querySelector('[data-verdict-alternative-text]');
+      if (alternativeText) {
+        alternativeText.textContent = draft.altName && Number(draft.altPrice) > 0
+          ? draft.altName + ' is listed at ' + formatRupees(Number(draft.altPrice)) + '.'
+          : 'No alternative name and positive price were entered.';
+      }
+
+      var scoreCaption = document.querySelector('[data-score-caption]');
+      var scoreRows = document.querySelector('[data-score-breakdown]');
+      if (scoreCaption) scoreCaption.textContent = 'How the impulse score of ' + score + ' was reached';
+      if (scoreRows) {
+        scoreRows.textContent = '';
+        [
+          ['Purchase trigger', draft.trigger || 'not set', draft.trigger === 'impulse' ? '25 of 25' : draft.trigger === 'offer' ? '15 of 15' : '0 of 25'],
+          ['Duplicate already owned', hasDuplicate ? ownedItems.filter(function (item) { return item !== 'none'; }).join(', ') : 'none', hasDuplicate ? '25 of 25' : '0 of 25'],
+          ['Honesty checks completed', draft.honesty.length + ' of 3', Math.max(0, 3 - draft.honesty.length) * 10 + ' points for unanswered checks'],
+          ['Price threshold', formatRupees(price), price >= 10000 ? '30 of 30' : price >= 5000 ? '20 of 30' : price >= 2500 ? '10 of 30' : '0 of 30']
+        ].forEach(function (rowValues) {
+          var row = document.createElement('tr');
+          rowValues.forEach(function (value, index) {
+            var cell = document.createElement(index === 0 ? 'th' : 'td');
+            if (index === 0) cell.scope = 'row';
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+          scoreRows.appendChild(row);
+        });
+      }
+
+      var usageLabel = document.querySelector('[data-field="usage-label"]');
+      var comparisonSummary = document.querySelector('[data-comparison-summary]');
+      var comparisonCost = document.querySelector('[data-comparison-cost]');
+      var comparisonPrice = document.querySelector('[data-comparison-price]');
+      var comparisonUses = document.querySelector('[data-comparison-uses]');
+      var comparisonAltCost = document.querySelector('[data-comparison-alt-cost]');
+      var comparisonAltPrice = document.querySelector('[data-comparison-alt-price]');
+      var comparisonAltUses = document.querySelector('[data-comparison-alt-uses]');
+      var comparisonAltName = document.querySelector('[data-comparison-alt-name]');
+      var comparisonOwned = document.querySelector('[data-comparison-owned]');
+
+      if (usageLabel) usageLabel.textContent =
+        usesPerMonth > 0 && lifespanMonths > 0
+          ? usesPerMonth + ' uses a month for ' + lifespanMonths + ' months'
+          : 'Usage not set';
+      if (comparisonSummary) {
+        comparisonSummary.textContent = totalUses > 0
+          ? 'Calculated from ' + totalUses + ' estimated uses over ' + lifespanMonths + ' months.'
+          : 'Complete the usage step to calculate this comparison.';
+      }
+      if (comparisonCost) comparisonCost.textContent = totalUses > 0
+        ? formatRupees(calculateCostPerUse(price, usesPerMonth, lifespanMonths))
+        : '-';
+      if (comparisonPrice) comparisonPrice.textContent = price > 0 ? formatRupees(price) : '-';
+      if (comparisonUses) comparisonUses.textContent = totalUses > 0 ? String(totalUses) : '-';
+      if (comparisonAltPrice) comparisonAltPrice.textContent =
+        draft.altName && Number(draft.altPrice) > 0 ? formatRupees(Number(draft.altPrice)) : '-';
+      if (comparisonAltUses) comparisonAltUses.textContent = totalUses > 0 ? String(totalUses) : '-';
+      if (comparisonAltName) comparisonAltName.textContent = draft.altName || 'No alternative entered';
+      if (comparisonAltCost) comparisonAltCost.textContent =
+        draft.altName && Number(draft.altPrice) > 0 && totalUses > 0
+          ? formatRupees(Math.round(Number(draft.altPrice) / totalUses))
+          : '-';
+      if (comparisonOwned) comparisonOwned.textContent =
+        hasDuplicate ? ownedItems.filter(function (item) { return item !== 'none'; }).join(', ') : 'None selected';
     }
 
   function continueVerdictCountdown(countdown, markAsBought) {
@@ -669,6 +866,25 @@
   function formDraft(form) {
     var draft = getDraft();
     var formData = new FormData(form);
+    var categoryAnswers = Object.assign({}, draft.categoryAnswers || {});
+
+    Array.prototype.forEach.call(form.elements, function (control) {
+      if (!control.name || control.name.indexOf('categoryAnswer.') !== 0) return;
+      var name = control.name.split('.')[1];
+      if (control.type === 'checkbox') {
+        if (!Array.isArray(categoryAnswers[name])) categoryAnswers[name] = [];
+        if (control.checked && categoryAnswers[name].indexOf(control.value) === -1) {
+          categoryAnswers[name].push(control.value);
+        } else if (!control.checked) {
+          categoryAnswers[name] = categoryAnswers[name].filter(function (value) {
+            return value !== control.value;
+          });
+        }
+      } else if (control.type === 'radio' && control.checked) {
+        categoryAnswers[name] = control.value;
+      }
+    });
+    draft.categoryAnswers = categoryAnswers;
 
     DRAFT_FIELDS.forEach(function (field) {
       var values = formData.getAll(field);
@@ -797,6 +1013,174 @@
       });
     }
     updateSidebarBill(getDraft());
+
+    function initCategorySurvey() {
+      var container = document.querySelector('[data-category-survey-fields]');
+      if (!container || !window.getVetoCategorySurvey) return;
+      var draft = getDraft();
+      var survey = window.getVetoCategorySurvey(draft.category);
+
+      var title = document.querySelector('[data-category-survey-title]');
+      var heading = document.querySelector('h1.page-title');
+      var lead = heading ? heading.nextElementSibling : null;
+      if (title) title.textContent = survey.name === 'other'
+        ? 'Other purchase check'
+        : survey.name.charAt(0).toUpperCase() + survey.name.slice(1).replace('-', ' ') + ' check';
+      if (lead) lead.textContent = 'Answer questions designed for ' +
+        (survey.name === 'other' ? 'this purchase category' : survey.name.replace('-', ' ')) +
+        ', using real habits instead of a generic estimate.';
+
+      var usageSlider = document.getElementById('uses-per-month');
+      var lifespanSlider = document.getElementById('lifespan');
+      var usageLabel = document.querySelector('label[for="uses-per-month"]');
+      var lifespanLabel = document.querySelector('label[for="lifespan"]');
+      if (usageSlider) {
+        usageSlider.max = survey.usageMax;
+        if (!draft.usesPerMonth) usageSlider.value = survey.usageDefault;
+        else usageSlider.value = draft.usesPerMonth;
+      }
+      if (lifespanSlider) {
+        lifespanSlider.max = survey.lifespanMax;
+        if (!draft.lifespanMonths) lifespanSlider.value = survey.lifespanDefault;
+        else lifespanSlider.value = draft.lifespanMonths;
+      }
+      if (usageLabel) usageLabel.textContent = survey.usageLabel;
+      if (lifespanLabel) lifespanLabel.textContent = survey.lifespanLabel;
+
+      container.textContent = '';
+      survey.questions.forEach(function (question) {
+        var fieldset = document.createElement('fieldset');
+        fieldset.className = 'fieldset';
+        var legend = document.createElement('legend');
+        legend.className = 'legend';
+        legend.textContent = question.label;
+        fieldset.appendChild(legend);
+        var choiceList = document.createElement('div');
+        choiceList.className = 'choice-list mt-4';
+        question.options.forEach(function (option) {
+          var label = document.createElement('label');
+          var input = document.createElement('input');
+          var text = document.createElement('span');
+          label.className = 'choice';
+          input.type = question.type;
+          input.name = 'categoryAnswer.' + question.name;
+          input.value = option[0];
+          if (draft.categoryAnswers && Array.isArray(draft.categoryAnswers[question.name])) {
+            input.checked = draft.categoryAnswers[question.name].indexOf(option[0]) !== -1;
+          } else if (draft.categoryAnswers && draft.categoryAnswers[question.name] === option[0]) {
+            input.checked = true;
+          }
+          text.className = 'choice__text';
+          var title = document.createElement('span');
+          title.className = 'choice__title';
+          title.textContent = option[1];
+          text.appendChild(title);
+          label.appendChild(input);
+          label.appendChild(text);
+          choiceList.appendChild(label);
+        });
+        fieldset.appendChild(choiceList);
+        container.appendChild(fieldset);
+      });
+
+      if (usageSlider) usageSlider.value = draft.usesPerMonth || survey.usageDefault;
+      if (lifespanSlider) lifespanSlider.value = draft.lifespanMonths || survey.lifespanDefault;
+      var usageReadout = document.querySelector("[data-field='uses-per-month']");
+      var lifespanReadout = document.querySelector("[data-field='lifespan']");
+      if (usageReadout && usageSlider) usageReadout.textContent = usageSlider.value + ' a month';
+      if (lifespanReadout && lifespanSlider) lifespanReadout.textContent = lifespanSlider.value + ' months';
+      saveDraft(normalizeDraft(Object.assign({}, draft, {
+        usesPerMonth: usageSlider ? usageSlider.value : draft.usesPerMonth,
+        lifespanMonths: lifespanSlider ? lifespanSlider.value : draft.lifespanMonths
+      })));
+    }
+
+    function initCategoryRedundancy() {
+      var container = document.querySelector('[data-redundancy-options]');
+      if (!container || !window.getVetoCategorySurvey) return;
+      var draft = getDraft();
+      var survey = window.getVetoCategorySurvey(draft.category);
+      var title = document.querySelector('[data-redundancy-title]');
+      var hint = document.querySelector('[data-redundancy-hint]');
+      if (title) title.textContent = survey.redundancyTitle;
+      if (hint) hint.textContent = 'Select any lower-friction route that really covers the same need.';
+
+      container.textContent = '';
+      survey.redundancyOptions.forEach(function (option) {
+        var label = document.createElement('label');
+        var input = document.createElement('input');
+        var text = document.createElement('span');
+        label.className = 'choice';
+        input.type = 'checkbox';
+        input.name = 'owned';
+        input.value = option[0];
+        if (Array.isArray(draft.owned) && draft.owned.indexOf(option[0]) !== -1) input.checked = true;
+        text.className = 'choice__text';
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'choice__title';
+        titleSpan.textContent = option[1];
+        text.appendChild(titleSpan);
+        label.appendChild(input);
+        label.appendChild(text);
+        container.appendChild(label);
+      });
+
+      var noneLabel = document.createElement('label');
+      var noneInput = document.createElement('input');
+      var noneText = document.createElement('span');
+      noneLabel.className = 'choice';
+      noneInput.type = 'checkbox';
+      noneInput.name = 'owned';
+      noneInput.value = 'none';
+      if (Array.isArray(draft.owned) && draft.owned.indexOf('none') !== -1) noneInput.checked = true;
+      noneText.className = 'choice__text';
+      var noneTitle = document.createElement('span');
+      noneTitle.className = 'choice__title';
+      noneTitle.textContent = 'Nothing here covers the need';
+      noneText.appendChild(noneTitle);
+      noneLabel.appendChild(noneInput);
+      noneLabel.appendChild(noneText);
+      container.appendChild(noneLabel);
+    }
+
+    initCategorySurvey();
+    initCategoryRedundancy();
+
+    function initHomeSummary() {
+      var summary = document.querySelector('[data-home-summary]');
+      if (!summary) return;
+      getDecisions().then(function (decisions) {
+        if (!Array.isArray(decisions) || decisions.length === 0) {
+          var status = document.querySelector('[data-home-status]');
+          if (status) status.textContent = 'Start a check';
+          return;
+        }
+        var decision = decisions[0];
+        var draft = normalizeDraft(decision.draft);
+        var price = Number(draft.price);
+        var uses = Number(draft.usesPerMonth) * Number(draft.lifespanMonths);
+        var name = document.querySelector('[data-home-name]');
+        var homePrice = document.querySelector('[data-home-price]');
+        var usage = document.querySelector('[data-home-usage]');
+        var lifespan = document.querySelector('[data-home-lifespan]');
+        var total = document.querySelector('[data-home-total]');
+        var cost = document.querySelector('[data-home-cost]');
+        var status = document.querySelector('[data-home-status]');
+        if (name) name.textContent = draft.name || 'Unnamed item';
+        if (homePrice) homePrice.textContent = price > 0 ? formatRupees(price) : '-';
+        if (usage) usage.textContent = Number(draft.usesPerMonth) > 0 ? draft.usesPerMonth + ' a month' : '-';
+        if (lifespan) lifespan.textContent = Number(draft.lifespanMonths) > 0 ? draft.lifespanMonths + ' months' : '-';
+        if (total) total.textContent = uses > 0 ? String(uses) : '-';
+        if (cost) cost.textContent = price > 0 && uses > 0
+          ? formatRupees(calculateCostPerUse(price, Number(draft.usesPerMonth), Number(draft.lifespanMonths)))
+          : '-';
+        if (status) status.textContent = getDecisionStatus(decision.outcome).label;
+      }).catch(function (error) {
+        console.error('VETO could not load the latest saved check.', error);
+      });
+    }
+
+    initHomeSummary();
 
     if (itemForm) {
       itemForm.addEventListener('submit', function (event) {

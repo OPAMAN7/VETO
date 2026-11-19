@@ -71,10 +71,10 @@
             <div class="mt-4">
               <div class="slider-head">
                 <label class="label" for="uses-per-month">Uses per month</label>
-                <span class="slider-value" data-field="uses-per-month">2 a month</span>
+                <span class="slider-value" data-field="uses-per-month">0 a month</span>
               </div>
               <input class="slider" type="range" id="uses-per-month" name="usesPerMonth"
-                     min="0" max="30" step="1" value="2"
+                     min="0" max="30" step="1" value="0"
                      aria-describedby="uses-hint">
               <div class="slider-scale" aria-hidden="true">
                 <span>Never</span><span>15</span><span>30 or more</span>
@@ -86,10 +86,10 @@
             <div class="mt-5">
               <div class="slider-head">
                 <label class="label" for="lifespan">Months you expect it to last</label>
-                <span class="slider-value" data-field="lifespan">24 months</span>
+                <span class="slider-value" data-field="lifespan">1 month</span>
               </div>
               <input class="slider" type="range" id="lifespan" name="lifespanMonths"
-                     min="1" max="60" step="1" value="24"
+                     min="1" max="60" step="1" value="1"
                      aria-describedby="lifespan-hint">
               <div class="slider-scale" aria-hidden="true">
                 <span>1 month</span><span>30</span><span>60</span>
@@ -131,6 +131,11 @@
             </div>
           </fieldset>
 
+          <fieldset class="fieldset" data-category-survey>
+            <legend class="legend" data-category-survey-title>Category-specific check</legend>
+            <div data-category-survey-fields></div>
+          </fieldset>
+
           <div class="btn-row btn-row--split mt-5">
             <a class="btn btn--secondary" href="step-1-item.html">Back to item details</a>
             <button class="btn btn--primary" type="submit">Continue to redundancy</button>
@@ -145,33 +150,32 @@
           <div class="bill__sum">
             <p class="bill__numerator">
               <span>Price</span>
-              <span data-field="price">&#8377;18,499</span>
+              <span data-field="price">-</span>
             </p>
             <hr class="bill__rule">
             <p class="bill__denominator">
               <span>Total uses</span>
-              <span data-field="uses">48</span>
+              <span data-field="uses">-</span>
             </p>
           </div>
 
           <div class="bill__quotient live-region" aria-live="polite" aria-atomic="true">
-            <strong class="bill__figure" data-field="cost-per-use">&#8377;385</strong>
+            <strong class="bill__figure" data-field="cost-per-use">-</strong>
             <span class="bill__unit">per use over 24 months</span>
           </div>
 
           <dl class="bill__breakdown">
-            <div><dt>Same money as</dt><dd>92 coffees</dd></div>
-            <div><dt>Factors answered so far</dt><dd>3 of 5</dd></div>
-            <div><dt>Impulse score so far</dt><dd data-field="impulse">82 of 100</dd></div>
+            <div><dt>Factors answered</dt><dd data-field="factors">0 of 5</dd></div>
+            <div><dt>Impulse score so far</dt><dd data-field="impulse">not scored</dd></div>
           </dl>
 
           <div class="mt-4">
-            <div class="meter" role="img" aria-label="Provisional impulse score 82 out of 100, inside the 75 to 89 wait band">
-              <div class="meter__fill" style="width: 82%"></div>
+            <div class="meter" role="img" aria-label="Provisional impulse score not scored">
+            <div class="meter__fill" style="width: 0%"></div>
             </div>
           </div>
 
-          <p class="mt-4"><span class="pill pill--wait">Heading for a 48 hour wait</span></p>
+          <p class="mt-4"><span class="pill pill--wait" data-verdict-preview>Verdict pending</span></p>
         </div>
 
         <p class="note mt-4">The score is provisional: only the three factors you have
@@ -187,6 +191,7 @@
       <p>VETO</p>
     </div>
   </footer>
+  <script src="js/category-surveys.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>

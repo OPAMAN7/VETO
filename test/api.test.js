@@ -122,7 +122,20 @@ test('analytics summarizes actual saved decisions', async (t) => {
 });
 
 test('external integrations report missing credentials clearly', async (t) => {
-  const server = createServer({ store: createMemoryStore(), disableScheduler: true });
+  const server = createServer({
+    store: createMemoryStore(),
+    disableScheduler: true,
+    environment: {
+      PORT: '3000',
+      STORAGE_DRIVER: 'sqlite',
+      GEMINI_API_KEY: '',
+      EBAY_CLIENT_ID: '',
+      EBAY_CLIENT_SECRET: '',
+      VAPID_PUBLIC_KEY: '',
+      VAPID_PRIVATE_KEY: '',
+      VAPID_SUBJECT: ''
+    }
+  });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;

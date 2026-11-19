@@ -18,7 +18,8 @@ const DRAFT_FIELDS = [
   'owned',
   'access',
   'altName',
-  'altPrice'
+  'altPrice',
+  'categoryAnswers'
 ];
 const MULTI_VALUE_FIELDS = new Set(['honesty', 'owned']);
 const REMINDER_TYPES = new Set(['cooling-off', 'reassessment', 'usage-audit']);
@@ -111,7 +112,12 @@ function validateDecision(input) {
       }
       draft[field] = values;
     } else {
-      if (typeof value !== 'string' || value.length > 500) {
+      if (field === 'categoryAnswers') {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+          throw new StoreError(`Draft field ${field} is invalid.`, 400, 'INVALID_DRAFT_FIELD');
+        }
+        draft[field] = value;
+      } else if (typeof value !== 'string' || value.length > 500) {
         throw new StoreError(`Draft field ${field} is invalid.`, 400, 'INVALID_DRAFT_FIELD');
       }
       draft[field] = value;
