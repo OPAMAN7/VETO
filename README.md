@@ -1,113 +1,206 @@
 # VETO — The Anti-Impulse Purchase Engine
 
-VETO adds a deliberate pause before a purchase. It records the item being considered, the reason for wanting it, expected usage, alternatives already available, and the final decision.
+VETO helps people pause before a purchase. It calculates cost per use, records likely
+usage and existing alternatives, calculates a transparent impulse score, and gives the
+browser a 48-hour cooling-off period. It does not purchase or sell anything.
 
-## What is working in this repository
+## What is included
 
-- A four-step purchase-check flow built with semantic HTML, CSS, and vanilla JavaScript.
-- Draft answers and the cooling-off countdown are kept in browser `localStorage`.
-- The verdict page records one of three outcomes: `bought`, `delayed`, or `passed`.
-- Decision history is loaded from the server and filtered in the browser.
-- Cost-per-use and the impulse score are calculated by the frontend.
-- The alternatives page currently contains sample/placeholder entries; it is not yet connected to an alternatives database.
+- A four-step purchase evaluation for item details, usage, redundancy and verdict.
+- Cost-per-use and impulse-score calculations shown to the user.
+- Saved decisions with bought, delayed and passed outcomes.
+- SQLite as the safe local default.
+- Optional JSON and MongoDB storage adapters.
+- Decision CRUD and analytics APIs.
+- A Gemini Purchase Coach with a missing-key fallback.
+- eBay Browse product search with a missing-credential fallback.
+- Persistent reminder records and optional Web Push configuration.
+- Real analytics on the history page.
+- Existing HTML/CSS/JavaScript interface served by the Node.js backend.
+
+## Project structure
+
+```text
+VETO/
+├── backend/
+│   └── src/
+│       ├── app.js
+│       ├── config/
+│       │   └── env.js
+│       ├── middleware/
+│       ├── services/
+│       └── utils/
+├── Html/
+│   ├── css/
+│   ├── js/
+│   └── *.html
+├── data/
+│   └── veto.sqlite
+├── stores/
+│   └── decision-store.js
+├── test/
+├── server.js
+├── package.json
+└── .env.example
+```
+
+The frontend is intentionally kept at `Html/`. Root `server.js` is the backward-compatible
+entry point. The Express application is in `backend/src/app.js`.
 
 ## Requirements
 
-- Node.js 22.13 or newer.
-- npm (included with Node.js).
+- Node.js 22.13 or newer
+- npm
 
 ## Install and run
 
-From the repository root:
-
-```bash
+```powershell
 npm install
 npm start
 ```
 
-Open <http://127.0.0.1:3000>. Keep the server running while using VETO. Opening the HTML files directly will not connect to the API.
+Open <http://127.0.0.1:3000>.
 
-The server listens on `127.0.0.1` by default. Set `PORT` to change the port.
+Keep the server running while using the app. Opening HTML files directly does not connect
+them to the API.
 
-## Decision storage modes
+## Configuration
 
-VETO has one storage interface and three interchangeable backends. Only one backend is active at a time.
-
-### 1. SQLite (default — preserves the current local setup)
+Copy `.env.example` to `.env` and set only the features you use:
 
 ```text
-VETO_STORE=sqlite
+PORT=3000
+STORAGE_DRIVER=sqlite
+
+MONGODB_URI=
+GEMINI_API_KEY=
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=
 ```
 
-The default database is `data/veto.sqlite`. You can override the path with `VETO_DB_PATH`. This remains the default so an existing local SQLite history is not silently replaced.
+Never put credentials in HTML, frontend JavaScript, Git commits or public files. `.env`
+is ignored by Git.
 
-### 2. JSON file (local development / intermediate prototype)
+## Storage
 
-PowerShell:
+### SQLite — default
 
-```powershell
-$env:VETO_STORE = "json"
-npm start
+```text
+STORAGE_DRIVER=sqlite
+VETO_DB_PATH=data/veto.sqlite
 ```
 
-The store creates `data/decisions.json` automatically. Override it with `VETO_JSON_PATH`.
+The existing `data/veto.sqlite` database is preserved and extended with reminder tables.
+VETO never deletes or automatically migrates it.
 
-### 3. MongoDB (persistent database)
+### JSON
 
-PowerShell:
-
-```powershell
-$env:VETO_STORE = "mongodb"
-$env:MONGODB_URI = "your-mongodb-connection-string"
-npm start
+```text
+STORAGE_DRIVER=json
+VETO_JSON_PATH=data/decisions.json
 ```
 
-Use your own MongoDB connection string and keep it in an environment variable. Do not commit credentials to GitHub. VETO creates/uses the `decisions` collection in the selected database.
+The JSON adapter is useful for local development. It is a separate source of data.
 
-**Important:** changing the storage mode does not copy records between databases. The existing SQLite database and the older `Html/js/veto_decisions.json` export are left untouched. No SQLite-to-JSON or SQLite-to-MongoDB history migration is performed automatically.
+### MongoDB
 
-## API
-
-All API responses are JSON. Decision objects keep the same shape used by the existing frontend:
-
-```json
-{
-  "id": "unique-id",
-  "savedAt": "2026-11-19T10:00:00.000Z",
-  "outcome": "delayed",
-  "draft": {
-    "name": "Desk lamp",
-    "price": "1200"
-  }
-}
+```text
+STORAGE_DRIVER=mongodb
+MONGODB_URI=your-private-connection-uri
 ```
+
+MongoDB connects only when that storage driver is selected. The old `VETO_STORE` variable
+is also accepted for compatibility, but `STORAGE_DRIVER` is preferred.
+
+Changing storage providers does not copy decisions between databases. SQLite, JSON and
+MongoDB must not be used at the same time as competing sources of truth.
+
+## API endpoints
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/health` | Check API and active storage mode |
-| `GET` | `/api/decisions` | List decisions, newest first |
-| `GET` | `/api/decisions/:id` | Read one decision |
-| `POST` | `/api/decisions` | Create a decision |
-| `PUT` | `/api/decisions/:id` | Update the outcome and/or draft of a decision |
-| `DELETE` | `/api/decisions/:id` | Delete a decision |
+| GET | `/api/health` | Server and integration status |
+| GET | `/api/decisions` | List decisions, newest first |
+| GET | `/api/decisions/:id` | Fetch a decision |
+| POST | `/api/decisions` | Create a decision |
+| PUT | `/api/decisions/:id` | Update a decision |
+| DELETE | `/api/decisions/:id` | Delete a decision |
+| GET | `/api/analytics/summary` | Calculate analytics from saved decisions |
+| POST | `/api/coach/analyze` | Get a Gemini purchase coaching response |
+| GET | `/api/products/search?q=...` | Search eBay listings |
+| POST | `/api/reminders` | Schedule a reminder |
+| GET | `/api/reminders` | List reminder records |
+| DELETE | `/api/reminders/:id` | Delete a reminder |
+| POST | `/api/push/subscribe` | Save a browser push subscription |
+| POST | `/api/push/unsubscribe` | Remove a push subscription |
+| GET | `/api/push/public-key` | Get the public VAPID key |
 
-The existing frontend's `GET /api/decisions` and `POST /api/decisions` calls remain compatible. Request bodies are limited to 256 KB and validated on the server. Duplicate IDs return `409`; missing records return `404`.
+## External integrations
+
+### Gemini Purchase Coach
+
+Set `GEMINI_API_KEY` in `.env`. The key is sent only from the backend. The coach:
+
+- does not change saved decisions;
+- does not replace VETO's transparent impulse score;
+- returns a structured advisory response;
+- reports a clear missing-key, timeout or quota error.
+
+### eBay product search
+
+Set `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` in `.env`. You may set
+`EBAY_MARKETPLACE_ID`, which defaults to `EBAY_US`.
+
+No product data is invented. When credentials are missing or eBay has no access for the
+selected marketplace, the API reports a configuration or upstream error.
+
+### Web Push
+
+Generate development VAPID keys locally:
+
+```powershell
+npm run generate:vapid
+```
+
+Add the generated values to `.env`:
+
+```text
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:you@example.com
+```
+
+The backend stores reminder schedules and subscriptions. The scheduler only sends
+reminders while the server is running and only when VAPID keys are configured. Browser
+notifications can work while VETO is open; Web Push behavior is limited by OS/browser
+notification settings.
 
 ## Tests
 
-```bash
+```powershell
 npm test
 ```
 
-The tests use Node's built-in test runner and an in-memory test store; the JSON store tests use temporary files. They do not need a MongoDB account.
+The suite uses in-memory and temporary JSON/SQLite stores. It does not require Gemini,
+eBay or MongoDB credentials. Missing external credentials are tested as configured
+fallback responses.
 
-## Security and deployment notes
+## Common errors
 
-- The server binds to `127.0.0.1`, which is appropriate for local development.
-- The API does not yet include user accounts or authentication. Do not expose it to the public internet or use it for multiple users until authentication, authorization, HTTPS, and deployment configuration are added.
-- Keep MongoDB credentials and other secrets out of source control.
-- Local decision files and SQLite database files are ignored by Git.
+- **Cannot find dependencies:** run `npm install`.
+- **Port is already in use:** set `PORT=3001` in `.env`.
+- **MongoDB mode will not start:** verify `MONGODB_URI`, network access and database
+  credentials.
+- **Coach response says not configured:** add `GEMINI_API_KEY` to `.env`.
+- **Product search says not configured:** add both eBay credential variables.
+- **Web Push says not configured:** generate VAPID keys and restart VETO.
+- **Existing data disappeared:** check that `STORAGE_DRIVER=sqlite` and that
+  `VETO_DB_PATH` still points to `data/veto.sqlite`.
 
 ## Development team
 
-Developed as the primary Project-Based Learning deliverable for the CSE6 2025 Web Programming course (Semester 3) at BML Munjal University by Aman Sharma, Saksham Dixit, Anirudh Singh, and Himanshu Pal.
+Developed for the CSE6 2025 Web Programming course (Semester 3) at BML Munjal University:
+Aman Sharma, Saksham Dixit, Anirudh Singh and Himanshu Pal.

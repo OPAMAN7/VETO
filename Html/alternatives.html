@@ -71,11 +71,15 @@
       <hr class="divider">
 
       <section aria-labelledby="results-title">
-        <h2 class="section-title" id="results-title">24 alternatives</h2>
-        <p class="lead mt-3">Sorted by how much they save against the item people were
-          about to buy.</p>
+        <h2 class="section-title" id="results-title">Live product search</h2>
+        <p class="lead mt-3" data-product-status>Configure eBay API credentials to search live listings. No unverified listings are displayed.</p>
 
-        <ul class="card-grid mt-5">
+        <ul class="card-grid mt-5" data-product-results></ul>
+
+        <details class="card mt-5">
+          <summary class="sub-title">Sample alternatives</summary>
+          <p class="note mt-3">The examples below are static Phase 1 sample content and are not live listings or verified submissions.</p>
+          <ul class="card-grid mt-5">
           <li class="card">
             <h3 class="sub-title">Moka pot instead of an espresso machine</h3>
             <p class="muted mt-3">Covers the need: strong coffee at home, once or twice a
@@ -147,10 +151,8 @@
             </dl>
             <p class="mt-4"><span class="pill pill--good">Submitted 12 times</span></p>
           </li>
-        </ul>
-
-        <p class="note mt-5">Counts are placeholder data for Phase 1. In Phase 3 these
-          come from the Alternative collection in MongoDB.</p>
+          </ul>
+        </details>
 
       </section>
 

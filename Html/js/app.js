@@ -390,7 +390,236 @@
     if (!countdown || !markAsBought) {
       return;
     }
+    continueVerdictCountdown(countdown, markAsBought);
+  }
 
+  function initHistoryAnalytics() {
+      var values = document.querySelectorAll('[data-analytics]');
+      if (values.length === 0) return;
+
+      requestJson('/api/analytics/summary').then(function (summary) {
+        values.forEach(function (element) {
+          var key = element.getAttribute('data-analytics');
+          if (key === 'estimatedMoneyAvoided') {
+            element.textContent = formatRupees(summary.estimatedMoneyAvoided || 0);
+          } else if (key === 'averageImpulseScore') {
+            element.textContent = summary.averageImpulseScore === null
+              ? '-'
+              : summary.averageImpulseScore + '/100';
+          } else {
+            element.textContent = String(summary[key] || 0);
+          }
+        });
+      }).catch(function (error) {
+        console.error('VETO could not load analytics.', error);
+      });
+    }
+
+  function initAlternatives() {
+      var form = document.querySelector('[action="alternatives.html"][method="get"]');
+      var results = document.querySelector('[data-product-results]');
+      var status = document.querySelector('[data-product-status]');
+      if (!form || !results) return;
+
+      var searchInput = document.getElementById('alt-search');
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var query = searchInput ? searchInput.value.trim() : '';
+        if (!query) {
+          if (status) status.textContent = 'Enter a product name to search live listings.';
+          return;
+        }
+        if (status) status.textContent = 'Searching eBay listings...';
+        results.textContent = '';
+
+        requestJson('/api/products/search?q=' + encodeURIComponent(query)).then(function (data) {
+          if (!Array.isArray(data.products) || data.products.length === 0) {
+            if (status) status.textContent = 'No verified listings were returned.';
+            return;
+          }
+          if (status) status.textContent = data.products.length + ' live listings returned.';
+          data.products.forEach(function (product) {
+            var item = document.createElement('li');
+            var title = document.createElement('h3');
+            var description = document.createElement('p');
+            var link = document.createElement('a');
+
+            item.className = 'card';
+            title.className = 'sub-title';
+            title.textContent = product.title;
+            description.className = 'muted mt-3';
+            description.textContent = [
+              product.price ? product.price.value + ' ' + product.price.currency : 'Price not provided',
+              product.condition || 'Condition not provided',
+              product.seller ? 'Seller: ' + product.seller : ''
+            ].filter(Boolean).join(' · ');
+            link.className = 'text-link';
+            link.href = product.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'View listing';
+            item.appendChild(title);
+            item.appendChild(description);
+            if (product.imageUrl) {
+              var image = document.createElement('img');
+              image.src = product.imageUrl;
+              image.alt = '';
+              image.loading = 'lazy';
+              image.className = 'mt-3';
+              item.appendChild(image);
+            }
+            item.appendChild(link);
+            link.className += ' mt-3';
+            results.appendChild(item);
+          });
+        }).catch(function (error) {
+          if (status) status.textContent = error.message;
+        });
+      });
+    }
+
+  function initPurchaseCoach() {
+      var coach = document.querySelector('[data-coach]');
+      var button = document.querySelector('[data-coach-button]');
+      var status = document.querySelector('[data-coach-status]');
+      var result = document.querySelector('[data-coach-result]');
+      if (!coach || !button) return;
+
+      button.addEventListener('click', function () {
+        button.disabled = true;
+        if (status) status.textContent = 'Analyzing this purchase...';
+        if (result) result.hidden = true;
+        requestJson('/api/coach/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(getDraft())
+        }).then(function (data) {
+          if (status) status.textContent = 'Adviser response received.';
+          if (!result) return;
+          result.hidden = false;
+          result.textContent = '';
+          var fields = [
+            ['Analysis', data.analysis],
+            ['Risk factors', data.riskFactors.join('; ')],
+            ['Questions', data.questions.join('; ')],
+            ['Suggestions', data.suggestions.join('; ')],
+            ['Recommendation', data.recommendation],
+            ['Explanation', data.explanation]
+          ];
+          fields.forEach(function (field) {
+            var paragraph = document.createElement('p');
+            var strong = document.createElement('strong');
+            strong.textContent = field[0] + ': ';
+            paragraph.appendChild(strong);
+            paragraph.appendChild(document.createTextNode(field[1]));
+            paragraph.className = 'mt-3';
+            result.appendChild(paragraph);
+          });
+        }).catch(function (error) {
+          if (status) status.textContent = error.message;
+        }).finally(function () {
+          button.disabled = false;
+        });
+      });
+    }
+
+  function scheduleDecisionReminders(savedDecision) {
+      if (!savedDecision || !savedDecision.id) return Promise.resolve();
+      var reminders = [{
+        decisionId: savedDecision.id,
+        type: 'cooling-off',
+        dueAt: new Date(Date.now() + COOLING_OFF_MS).toISOString(),
+        message: 'The 48-hour cooling-off period for ' + (savedDecision.draft.name || 'your purchase') + ' has ended.'
+      }, {
+        decisionId: savedDecision.id,
+        type: 'usage-audit',
+        dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        message: 'Review actual usage for ' + (savedDecision.draft.name || 'your purchase') + '.'
+      }];
+
+      return reminders.reduce(function (chain, reminder) {
+        return chain.catch(function () {}).then(function () {
+          return requestJson('/api/reminders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reminder)
+          });
+        });
+      }, Promise.resolve());
+    }
+
+  function initReminderSupport() {
+      if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+      var button = document.getElementById('enable-reminders');
+      var status = document.getElementById('reminder-status');
+      navigator.serviceWorker.register('/sw.js').catch(function (error) {
+        console.error('VETO could not register the reminder service worker.', error);
+      });
+      if (!button) return;
+      function urlBase64ToUint8Array(base64String) {
+        var padding = '='.repeat((4 - base64String.length % 4) % 4);
+        var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        var raw = window.atob(base64);
+        var output = new Uint8Array(raw.length);
+        for (var index = 0; index < raw.length; index += 1) {
+          output[index] = raw.charCodeAt(index);
+        }
+        return output;
+      }
+      button.addEventListener('click', function () {
+        if (status) status.textContent = 'Checking Web Push configuration...';
+        Promise.all([
+          navigator.serviceWorker.ready,
+          requestJson('/api/push/public-key').catch(function () {
+            throw new Error('Web Push is not configured yet. VAPID keys are required.');
+          }),
+          window.Notification.requestPermission()
+        ]).then(function (values) {
+          var registration = values[0];
+          var publicKey = values[1].publicKey;
+          var permission = values[2];
+          if (permission !== 'granted') {
+            throw new Error('Browser notification permission was not granted.');
+          }
+          return registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          }).then(function (subscription) {
+            return requestJson('/api/push/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(subscription.toJSON())
+            });
+          });
+        }).then(function () {
+          if (status) status.textContent = 'Browser reminders enabled.';
+        }).catch(function (error) {
+          if (status) status.textContent = error.message;
+        });
+      });
+    }
+
+  function initVerdictSummary() {
+      if (!document.getElementById('verdict-countdown')) return;
+      var draft = getDraft();
+      var title = document.querySelector('main .page-title');
+      var lead = title ? title.nextElementSibling : null;
+      var name = draft.name || 'Your purchase';
+      var price = Number(draft.price);
+      var usesPerMonth = Number(draft.usesPerMonth);
+      var lifespanMonths = Number(draft.lifespanMonths);
+      var totalUses = usesPerMonth * lifespanMonths;
+      var score = calculateImpulseScore(draft);
+      var decision = score >= 90 ? 'skip it' : score >= 75 ? 'wait 48 hours' : 'consider buying';
+      if (title) title.textContent = name + ': ' + decision;
+      if (lead) {
+        lead.textContent = totalUses > 0
+          ? name + ' has an estimated cost per use of ' + formatRupees(calculateCostPerUse(price, usesPerMonth, lifespanMonths)) + ' and an impulse score of ' + score + ' out of 100.'
+          : name + ' has an impulse score of ' + score + ' out of 100.';
+      }
+    }
+
+  function continueVerdictCountdown(countdown, markAsBought) {
     var draftSignature = JSON.stringify(getDraft());
     var countdownState = readStorage(COUNTDOWN_KEY, null);
     var deadline = countdownState && countdownState.draftSignature === draftSignature
@@ -547,6 +776,11 @@
     syncNavigationState();
     initStepRouting();
     initHistory();
+    initHistoryAnalytics();
+    initAlternatives();
+    initPurchaseCoach();
+    initReminderSupport();
+    initVerdictSummary();
     initVerdictCountdown();
 
     var stepForm = document.querySelector('[data-step]');
@@ -709,8 +943,12 @@
         saveDecision({
           outcome: submitter ? submitter.value : '',
           draft: getDraft()
-        }).then(function () {
-          window.location.href = 'history.html';
+        }).then(function (savedDecision) {
+          return scheduleDecisionReminders(savedDecision).catch(function (error) {
+            console.error('VETO could not schedule every reminder.', error);
+          }).then(function () {
+            window.location.href = 'history.html';
+          });
         }).catch(function (error) {
           console.error('VETO could not save decision.', error);
           if (status) {

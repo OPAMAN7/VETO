@@ -90,3 +90,52 @@ test('decision API validates new records', async (t) => {
   assert.equal(response.status, 400);
   assert.match((await response.json()).error, /Outcome must be/);
 });
+
+test('analytics summarizes actual saved decisions', async (t) => {
+  const memory = createMemoryStore();
+  await memory.create({
+    id: 'analytics-bought',
+    savedAt: '2026-11-01T00:00:00.000Z',
+    outcome: 'bought',
+    draft: { name: 'Lamp', price: '3000', category: 'furniture', trigger: 'offer', honesty: [], owned: ['none'] }
+  });
+  await memory.create({
+    id: 'analytics-passed',
+    savedAt: '2026-11-02T00:00:00.000Z',
+    outcome: 'passed',
+    draft: { name: 'Shoes', price: '5000', category: 'footwear', trigger: 'impulse', honesty: [], owned: ['none'] }
+  });
+  const server = createServer({ store: memory, disableScheduler: true });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
+  const response = await fetch(`${baseUrl}/api/analytics/summary`);
+  assert.equal(response.status, 200);
+  const summary = await response.json();
+  assert.equal(summary.totalDecisions, 2);
+  assert.equal(summary.purchases, 1);
+  assert.equal(summary.skipped, 1);
+  assert.equal(summary.totalSpent, 3000);
+  assert.equal(summary.estimatedMoneyAvoided, 5000);
+  assert.equal(summary.commonTriggers[0].trigger, 'impulse');
+});
+
+test('external integrations report missing credentials clearly', async (t) => {
+  const server = createServer({ store: createMemoryStore(), disableScheduler: true });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
+  const coachResponse = await fetch(`${baseUrl}/api/coach/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Lamp', price: '3000' })
+  });
+  assert.equal(coachResponse.status, 503);
+  assert.match((await coachResponse.json()).error, /GEMINI_API_KEY/);
+
+  const productResponse = await fetch(`${baseUrl}/api/products/search?q=lamp`);
+  assert.equal(productResponse.status, 503);
+  assert.match((await productResponse.json()).error, /EBAY_CLIENT/);
+});

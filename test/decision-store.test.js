@@ -34,6 +34,14 @@ test('validateDecision rejects an unsupported outcome', () => {
   );
 });
 
+test('reminder validation rejects invalid schedules', () => {
+  const { validateReminder, StoreError } = require('../stores/decision-store');
+  assert.throws(
+    () => validateReminder({ decisionId: 'decision-1', type: 'other', dueAt: 'not-a-date' }),
+    (error) => error instanceof StoreError && error.statusCode === 400
+  );
+});
+
 test('JSON store supports create, read, update, list and delete', async (t) => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'veto-store-'));
   const store = createJsonDecisionStore(path.join(directory, 'decisions.json'));

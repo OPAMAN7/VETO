@@ -178,6 +178,8 @@
             </p>
             <p class="hint" id="lock-reason">Available once the 48 hour cooling-off period
               ends. The countdown starts when the verdict is saved.</p>
+            <button class="btn btn--secondary mt-4" type="button" id="enable-reminders">Enable browser reminders</button>
+            <p class="hint mt-3" id="reminder-status" role="status" aria-live="polite"></p>
           </div>
 
           <form class="card" id="decision-form" action="history.html" method="get" data-decision>
@@ -196,6 +198,14 @@
               <p class="error-text mt-4" id="decision-save-status" role="status" aria-live="polite" hidden></p>
             </fieldset>
           </form>
+
+          <div class="card" data-coach>
+            <h2 class="sub-title">Purchase Coach</h2>
+            <p class="muted mt-3">Ask a separate AI adviser to examine this draft. It will not change or save your decision.</p>
+            <button class="btn btn--secondary mt-4" type="button" data-coach-button>Analyze this purchase</button>
+            <p class="hint mt-3" data-coach-status role="status" aria-live="polite"></p>
+            <div class="mt-4" data-coach-result hidden></div>
+          </div>
 
           <p class="note">To keep a copy, print this page. A report stylesheet strips the
             navigation and prints the bill on its own.</p>
